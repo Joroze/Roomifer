@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "708020255001",
+    "project_id": "firebase-roomifer"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708020255001:android:b36b283597241ab5",
+        "android_client_info": {
+          "package_name": "joroze.com.roomifer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "708020255001-bsa25mf2fmhermohf09dktr8vf54286c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "joroze.com.roomifer",
+            "certificate_hash": "c34848ffc85070797484dedd83bd6022663c7b7b"
+          }
+        },
+        {
+          "client_id": "708020255001-pd3kr06f4arccohmo3i0hece33h55n6m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAg3fNu6Zomwkb2xj7bTVQNeBfrbPSpQhw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
