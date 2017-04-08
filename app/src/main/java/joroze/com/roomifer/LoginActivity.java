@@ -2,6 +2,8 @@ package joroze.com.roomifer;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.util.Log;
 
 import android.view.View;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +25,11 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * A login screen that offers login via email/password.
@@ -32,6 +40,8 @@ public class LoginActivity extends AppCompatActivity implements
 
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
+
+    public static User user;
 
     private GoogleApiClient mGoogleApiClient;
     private TextView mStatusTextView;
@@ -44,6 +54,10 @@ public class LoginActivity extends AppCompatActivity implements
 
     // used for displaying the sign-in menu correctly after the user signs out.
     public static boolean UseSilentSignIn = true;
+
+
+    private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
 
 
     @Override
@@ -81,6 +95,12 @@ public class LoginActivity extends AppCompatActivity implements
         SignInButton signInButton = (SignInButton) findViewById(R.id.sign_in_button);
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         // [END customize_button]
+
+
+        // Write a message to the database
+        //database = FirebaseDatabase.getInstance();
+        //myRef = database.getReference("message");
+
 
     }
 
@@ -135,6 +155,7 @@ public class LoginActivity extends AppCompatActivity implements
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
 
+            writeNewUser(acct.getId(), acct.getDisplayName(), acct.getEmail());
 
             Intent nextActivity = new Intent(this, MainActivity.class);
             startActivity(nextActivity);
@@ -187,9 +208,18 @@ public class LoginActivity extends AppCompatActivity implements
     @Override
     public void onClick(View v) {
         signIn();
+
     }
 
+    private void writeNewUser(String userId, String name, String email) {
 
+        user = new User(userId, name, email);
+
+        mDatabase.child("users").child(userId).setValue(user);
+        //mDatabase.child("users").child(userId).child("username").setValue(name);
+
+        //mDatabase.child("users").child(userId).child("groups").child("group_name").setValue(true);
+    }
 
 
 

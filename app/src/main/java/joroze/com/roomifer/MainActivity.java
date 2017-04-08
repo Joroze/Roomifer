@@ -18,11 +18,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import static joroze.com.roomifer.LoginActivity.UseSilentSignIn;
+import static joroze.com.roomifer.LoginActivity.user;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -31,6 +39,8 @@ public class MainActivity extends AppCompatActivity
 
     GoogleApiClient mGoogleApiClient;
     boolean mSignInClicked;
+
+    private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +53,26 @@ public class MainActivity extends AppCompatActivity
                 .addOnConnectionFailedListener(this).addApi(Auth.GOOGLE_SIGN_IN_API)
                 .build();
 
+        /*
+        // Read from the database
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                String value = dataSnapshot.getValue(String.class);
+                Log.d(TAG, "Value is: " + value);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+        */
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -51,7 +81,9 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+
+
+                Snackbar.make(view, "What now?", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -150,6 +182,20 @@ public class MainActivity extends AppCompatActivity
                     finish();
                 }
 
+            } else if (id == R.id.nav_deleteAccount) {
+
+                if (mGoogleApiClient.isConnected()) {
+                    mGoogleApiClient.clearDefaultAccountAndReconnect();
+                    // updateUI(false);
+
+                    deleteAccount();
+                    Log.d(TAG, "Log out successful!");
+
+                    UseSilentSignIn = false;
+
+                    // finish this activity, and go back to the sign-in activity screen
+                    finish();
+                }
             }
 
 
@@ -181,6 +227,8 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
+            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as Jordan Rosenberg", Snackbar.LENGTH_SHORT);
+            snackbar.show();
         }
 
        //Toast.makeText(this,"Signed in as: " + acct.getDisplayName(), Toast.LENGTH_SHORT);
@@ -192,5 +240,12 @@ public class MainActivity extends AppCompatActivity
             mGoogleApiClient.disconnect();
         }
     }
+
+    private void deleteAccount()
+    {
+        mDatabase.child("users").child(user.id).removeValue();
+    }
+
+
 
 }

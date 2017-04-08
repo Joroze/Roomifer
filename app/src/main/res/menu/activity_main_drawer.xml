@@ -21,8 +21,13 @@
                 android:title="Tools" />
             <item
                 android:id="@+id/nav_signout"
-                android:icon="@drawable/ic_menu_send"
+                android:icon="@drawable/ic_settings_power_black_36px"
                 android:title="Sign Out" />
+            <item
+                android:id="@+id/nav_deleteAccount"
+                android:icon="@drawable/ic_error_black_36px"
+                android:title="Delete Account" />
+
             </group>
         </menu>
     </item>
