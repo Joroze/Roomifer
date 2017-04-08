@@ -1,8 +1,14 @@
 package joroze.com.roomifer;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,18 +18,36 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import static joroze.com.roomifer.LoginActivity.UseSilentSignIn;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private static final String TAG = "SignInActivity";
+
+    GoogleApiClient mGoogleApiClient;
+    boolean mSignInClicked;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this).addApi(Auth.GOOGLE_SIGN_IN_API)
+                .build();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -48,54 +72,125 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            // User should not need to go to the previous activity this way
+            //super.onBackPressed();
         }
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        String message = "Roomifer is awesome!";
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.putExtra(Intent.EXTRA_TEXT, message);
+
+/*
+        This is for future reference if we're going to share Binary Objects AKA media (Images, videos etc.)
+
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+        Uri screenshotUri = Uri.parse(path);
+
+        sharingIntent.setType("image/png");
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
+        startActivity(Intent.createChooser(sharingIntent, "Share image using"));
+*/
+
+
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_menu) {
+            startActivity(Intent.createChooser(share, "Share using Messenger"));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+
+
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+    public boolean onNavigationItemSelected(MenuItem item){
+            // Handle navigation view item clicks here.
+            int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+            if (id == R.id.nav_camera) {
+                // Handle the camera action
+            } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_slideshow) {
+            } else if (id == R.id.nav_manage) {
 
-        } else if (id == R.id.nav_manage) {
+            } else if (id == R.id.nav_signout) {
 
-        } else if (id == R.id.nav_share) {
+                if (mGoogleApiClient.isConnected()) {
+                    mGoogleApiClient.clearDefaultAccountAndReconnect();
+                    // updateUI(false);
+                    Log.d(TAG, "Log out successful!");
 
-        } else if (id == R.id.nav_send) {
+                    UseSilentSignIn = false;
 
-        }
+                    // finish this activity, and go back to the sign-in activity screen
+                    finish();
+                }
+
+            }
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+
+        }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mSignInClicked = false;
+
     }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "Connection FAILED!");
+    }
+
+    protected void onStart()
+    {
+        super.onStart();
+        if (!mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.connect();
+        }
+
+       //Toast.makeText(this,"Signed in as: " + acct.getDisplayName(), Toast.LENGTH_SHORT);
+    }
+
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
 }

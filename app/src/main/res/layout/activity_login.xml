@@ -73,6 +73,18 @@
                 android:layout_centerHorizontal="true"
                 android:paddingTop="165dp" />
 
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_below="@id/sign_in_button"
+                android:layout_marginTop="20dp"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/colorAccent"
+                android:textSize="14sp" />
+
         </RelativeLayout>
     </ScrollView>
 

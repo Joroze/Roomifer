@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -41,6 +42,8 @@ public class LoginActivity extends AppCompatActivity implements
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
+    // used for displaying the sign-in menu correctly after the user signs out.
+    public static boolean UseSilentSignIn = true;
 
 
     @Override
@@ -50,7 +53,8 @@ public class LoginActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_login);
 
         // Views
-       // mStatusTextView = (TextView) findViewById(R.id.status);
+        mStatusTextView = (TextView) findViewById(R.id.status);
+
 
         // Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
@@ -85,13 +89,18 @@ public class LoginActivity extends AppCompatActivity implements
         super.onStart();
 
         OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (opr.isDone()) {
+        if (opr.isDone() && UseSilentSignIn) {
             // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
             // and the GoogleSignInResult will be available instantly.
             Log.d(TAG, "Got cached sign-in");
             GoogleSignInResult result = opr.get();
             handleSignInResult(result);
-        } else {
+            // Go to the main activity!
+            //Intent nextActivity = new Intent(this, MainActivity.class);
+            //startActivity(nextActivity);
+            //finish();
+
+        } else if (UseSilentSignIn){
             // If the user has not previously signed in on this device or the sign-in has expired,
             // this asynchronous branch will attempt to sign in the user silently.  Cross-device
             // single sign-on will occur in this branch.
@@ -125,11 +134,17 @@ public class LoginActivity extends AppCompatActivity implements
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
-            mStatusTextView.setText("Signed in as: " + acct.getDisplayName());
-            updateUI(true);
+
+
+            Intent nextActivity = new Intent(this, MainActivity.class);
+            startActivity(nextActivity);
+            //mStatusTextView.setText("Signed in as: " + acct.getDisplayName());
+
+
+
         } else {
+            Log.d(TAG, "Currently signed out");
             // Signed out, show unauthenticated UI.
-            updateUI(false);
         }
     }
     // [END handleSignInResult]
@@ -166,13 +181,7 @@ public class LoginActivity extends AppCompatActivity implements
         }
     }
 
-    private void updateUI(boolean signedIn) {
-        if (signedIn) {
-            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-        } else {
-            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-        }
-    }
+
 
 
     @Override
