@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "708020255001-cq4ge06p6gbu0n9g3rq54gntcnt8kmmk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "joroze.com.roomifer",
+            "certificate_hash": "938a483c62da2e82bfaa3cdb03564ceeac08a526"
+          }
+        },
+        {
           "client_id": "708020255001-tj6gihtds55i0t6aa3ighg046bk10asg.apps.googleusercontent.com",
           "client_type": 3
         },

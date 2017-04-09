@@ -2,8 +2,6 @@ package joroze.com.roomifer;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -12,9 +10,7 @@ import android.util.Log;
 
 import android.view.View;
 
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -25,11 +21,9 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 /**
  * A login screen that offers login via email/password.
@@ -155,7 +149,10 @@ public class LoginActivity extends AppCompatActivity implements
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
 
-            writeNewUser(acct.getId(), acct.getDisplayName(), acct.getEmail());
+
+            user = new User(acct.getId(), acct.getDisplayName(), acct.getEmail());
+
+            User user2 = new User("10101", acct.getDisplayName(), acct.getEmail(), "6 Columbia Gang");
 
             Intent nextActivity = new Intent(this, MainActivity.class);
             startActivity(nextActivity);
@@ -203,25 +200,10 @@ public class LoginActivity extends AppCompatActivity implements
     }
 
 
-
-
     @Override
     public void onClick(View v) {
         signIn();
-
     }
-
-    private void writeNewUser(String userId, String name, String email) {
-
-        user = new User(userId, name, email);
-
-        mDatabase.child("users").child(userId).setValue(user);
-        //mDatabase.child("users").child(userId).child("username").setValue(name);
-
-        //mDatabase.child("users").child(userId).child("groups").child("group_name").setValue(true);
-    }
-
-
 
 
 }
