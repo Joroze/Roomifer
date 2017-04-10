@@ -1,10 +1,19 @@
-# Roomifer
+# Roomifer - (Currently a Private Repository)
 
 
 ### Roomifer is a great tool for managing errands and other tasks with your roommates, together.
 
-![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "for Android")
-#### Prerequisites:
+![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
+
+# Section Links
+1. [Prerequisites](#prerequisites)
+2. [App Description](#app-description)
+3. [App Goal](#app-goal)
+4. [General Explanation](#general-explanation)
+5. [Relevant Knowledge Center](#relevant-knowledge-center)
+6. [Possible Features for the Future](#possible-features-for-later-on)
+
+## Prerequisites:
 
 The project should involve at least some experience with the following:
 * Android development (using Android Studio)
@@ -12,17 +21,14 @@ The project should involve at least some experience with the following:
 * Version control (Git/GitHub)
 * Build automation (Gradle)
 * A backend database server (SQL possibly)
-___
 
-#### App Description/Introduction:
+## App Description:
 
 If you've ever lived off campus and had to deal with several roommates, you all may have struggled to stay organized and decide which roommate should buy a certain item for the house on a timely basis.
 
 Let’s say four roommates agreed to share their dish soap. Who gets to decide what to buy
 
-___
-
-#### App Goal:
+## App Goal:
 
 This app should help you and your roommates organize and set tasks by doing (simply) only the following:
 
@@ -32,9 +38,7 @@ Roommates are assigned to certain items (tasks) on the list and are expected to 
 
 Users will receive a notification once the task is completed and is up to the rotation stage
 
-___
-
-#### General Explanation: 
+## General Explanation: 
 
 An item basically represents a task
 
@@ -53,9 +57,7 @@ When adding an item to the list, the user can:
 * Assign the item to anyone in the group and it gets automatically rotates to someone else in the group to be assigned to them next once the due date is reached. (For example: a roommate alternates to buy dish soap every three weeks)
 * Set due date (or to be reminded via Android push notifications) on a certain date. Once the due date is reached, whichever user that is assigned that item on the list must dismiss (delete) the item from the list to confirm that he completed the task.
 
-___
-
-## Relevent Knowledge Center
+## Relevant Knowledge Center
 
 **UI Menu/Graphics:**
 https://github.com/material-components/material-components-android
@@ -70,8 +72,7 @@ https://developer.android.com/training/basics/data-storage/index.html
 **SQL Database with Android (Java):**
 https://developer.android.com/training/basics/data-storage/databases.html
 * Basic tutorial for database modeling: https://www.getdonedone.com/building-the-optimal-user-database-model-for-your-application/
-
-
+___
 
 #### Google API’s:
 
@@ -81,8 +82,7 @@ Using Google Sign-In API for Android (Java): https://developers.google.com/ident
 Using Google Calendar API for Java: https://developers.google.com/api-client-library/java/apis/calendar/v3
 * Example implementation of Google Calendar for Android (Java): https://github.com/google/google-api-java-client-samples/tree/master/calendar-android-sample
 
-___
 
-#### Possible features for later on:
+## Possible features for later on:
 * User permissions in a group
 * Privacy settings (to hide certain information from other users in a group)
