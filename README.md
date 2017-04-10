@@ -5,12 +5,14 @@
 
 ![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
 
-* [Link to a header](#prerequisites)
-* [Link to a header](#app-descriptionintroduction)
-* [Link to a header](#general-explanation)
-* [Link to a header](#relevent-knowledge-center)
-* [Link to a header](#possible-features-for-later-on)
-
+# Section Links
+* [Prerequisites](#prerequisites)
+* [App Description/Introduction](#app-descriptionintroduction)
+* [App Goal](#app-goal)
+* [General Explanation](#general-explanation)
+* [Relevant Knowledge Center](#relevant-knowledge-center)
+* [Possible Features for the Future](#possible-features-for-later-on)
+___
 
 #### Prerequisites:
 
@@ -63,7 +65,7 @@ When adding an item to the list, the user can:
 
 ___
 
-## Relevent Knowledge Center
+## Relevant Knowledge Center
 
 **UI Menu/Graphics:**
 https://github.com/material-components/material-components-android
