@@ -7,7 +7,7 @@
 
 # Section Links
 1. [Prerequisites](#prerequisites)
-2. [App Description/Introduction](#app-descriptionintroduction)
+2. [App Description](#app-description)
 3. [App Goal](#app-goal)
 4. [General Explanation](#general-explanation)
 5. [Relevant Knowledge Center](#relevant-knowledge-center)
@@ -24,7 +24,7 @@ The project should involve at least some experience with the following:
 * A backend database server (SQL possibly)
 ___
 
-#### App Description/Introduction:
+#### App Description:
 
 If you've ever lived off campus and had to deal with several roommates, you all may have struggled to stay organized and decide which roommate should buy a certain item for the house on a timely basis.
 
