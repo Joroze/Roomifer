@@ -23,13 +23,13 @@ import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 public class Group {
 
     @Exclude
-    public String id = Integer.toString(this.hashCode());
+    private String id;
 
-    public String author;
-    public String groupName;
+    private String author;
+    private String groupName;
 
-    public Map<String, Boolean> userNames = new HashMap<>();
-    public int memberCount = 0;
+    private Map<String, Boolean> members = new HashMap<>();
+    private int memberCount = 0;
 
     public Group() {
 
@@ -51,13 +51,14 @@ public class Group {
     }
 
     */
-    public Group(String groupName, User user) {
+    public Group(String id, String groupName, User user) {
+        this.id = id;
         this.groupName = groupName;
         this.author = user.userName;
-        this.userNames.put(user.userName, true);
-        memberCount = this.userNames.size();
+        this.members.put(user.g_uid, true);
+        this.memberCount = this.members.size();
 
-        user.addToGroup(groupName);
+        user.addToGroup(this);
     }
 
     @Exclude
@@ -67,11 +68,50 @@ public class Group {
         result.put("author", author);
         result.put("groupName", groupName);
         result.put("memberCount", memberCount);
-        result.put("members", userNames);
+        result.put("members", members);
 
         return result;
     }
 
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    public Map<String, Boolean> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Map<String, Boolean> members) {
+        this.members = members;
+    }
+
+    public int getMemberCount() {
+        return memberCount;
+    }
+
+    public void setMemberCount(int memberCount) {
+        this.memberCount = memberCount;
+    }
 
 }

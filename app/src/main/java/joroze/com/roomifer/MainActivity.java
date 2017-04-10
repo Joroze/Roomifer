@@ -18,52 +18,56 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
-import static joroze.com.roomifer.LoginActivity.UseSilentSignIn;
+import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "SignInActivity";
-    private Group group;
+
+    FirebaseManageJSON fbmjson = new FirebaseManageJSON(this);
 
     GoogleApiClient mGoogleApiClient;
-    boolean mSignInClicked;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this).addApi(Auth.GOOGLE_SIGN_IN_API)
+        // [START configure_signin]
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
                 .build();
+        // [END configure_signin]
 
-        /*
-        // Read from the database
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d(TAG, "Value is: " + value);
-            }
+        // [START build_client]
+        // Build a GoogleApiClient with access to the Google Sign-In API and the
+        // options specified by gso.
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+        // [END build_client]
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
-        */
+
+        String googleID = getIntent().getStringExtra("id");
+        String googleName = getIntent().getStringExtra("name");
+        String googleEmail = getIntent().getStringExtra("email");
+
+        clientUser = new User(googleID, googleName, googleEmail);
+        writeNewUser(clientUser);
+
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -76,19 +80,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
 
-                int result = writeNewGroup("6 Columbia Gang", clientUser);
 
-                if (result == 1)
-                {
-                    Snackbar.make(view, "Successfully created your group!", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-
-                else
-                    Snackbar.make(view, "Error! You can only belong up to 3 groups.", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-
-
+                writeNewGroup("6 Columbia Gang", clientUser);
             }
         });
 
@@ -174,34 +167,10 @@ public class MainActivity extends AppCompatActivity
             } else if (id == R.id.nav_manage) {
 
             } else if (id == R.id.nav_signout) {
-
-                if (mGoogleApiClient.isConnected()) {
-                    mGoogleApiClient.clearDefaultAccountAndReconnect();
-                    // updateUI(false);
-                    Log.d(TAG, "Log out successful!");
-
-                    UseSilentSignIn = false;
-
-                    // finish this activity, and go back to the sign-in activity screen
-                    finish();
-                }
-
+                signOut();
             } else if (id == R.id.nav_deleteAccount) {
-
-                if (mGoogleApiClient.isConnected()) {
-                    mGoogleApiClient.clearDefaultAccountAndReconnect();
-                    // updateUI(false);
-
-                    deleteAccount(clientUser);
-                    Log.d(TAG, "Log out successful!");
-
-                    UseSilentSignIn = false;
-
-                    // finish this activity, and go back to the sign-in activity screen
-                    finish();
-                }
+                revokeAccess();
             }
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -212,7 +181,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        mSignInClicked = false;
 
     }
 
@@ -226,16 +194,51 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "Connection FAILED!");
     }
 
+    public void signOut() {
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        if (status.isSuccess())
+                            Log.d(TAG, "Log Out successful!");
+                        else
+                            Log.d(TAG, "Log Out failed!");
+
+                        // finish this activity, and go back to the sign-in activity screen
+                        finish();
+                    }
+                });
+    }
+
+    public void revokeAccess() {
+        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+
+                        deleteAccount(clientUser);
+
+                        if (status.isSuccess())
+                            Log.d(TAG, "Revoke successful!");
+                        else
+                            Log.d(TAG, "Revoke failed!");
+
+                        // finish this activity, and go back to the sign-in activity screen
+                        finish();
+                    }
+                });
+    }
+
     protected void onStart()
     {
-        super.onStart();
-        if (!mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.connect();
-            //Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.userName, Snackbar.LENGTH_SHORT);
-            //snackbar.show();
-        }
 
-       //Toast.makeText(this,"Signed in as: " + acct.getDisplayName(), Toast.LENGTH_SHORT);
+
+
+        super.onStart();
+
+            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.userName, Snackbar.LENGTH_SHORT);
+            snackbar.show();
+
     }
 
     protected void onStop() {

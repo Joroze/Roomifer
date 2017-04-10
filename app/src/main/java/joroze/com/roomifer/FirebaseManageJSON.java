@@ -1,5 +1,8 @@
 package joroze.com.roomifer;
 
+import android.app.Activity;
+import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
@@ -23,84 +26,71 @@ public class FirebaseManageJSON {
 
     private static final String TAG = "SignInActivity";
 
-    //private static int;
-
-    private static int checkGroupCount;
-    private static ArrayList<String> checkGroups;
-
     private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
-    public static int writeNewUser(final String g_uid, final String userName, final String email) {
+    public static final int GROUP_COUNT_MAX_LIMIT = 3;
 
-        if (g_uid == null) {
+    static Context context;
+
+    public FirebaseManageJSON(Context context)
+    {
+        FirebaseManageJSON.context = context;
+    }
+
+    public static void updateSnackbarResult(int errorCode) {
+
+        // Variable to store the correct message to be shown by a snackbar to the MainActivity layout
+        String str_errMsg;
+
+        if (errorCode == 1)
+            str_errMsg = "Successfully created your group!";
+        else if (errorCode == -1)
+            str_errMsg = "You've reached the max group limit! (" + GROUP_COUNT_MAX_LIMIT + ")";
+        else
+            str_errMsg = "An unknown error has occured!";
+
+        Snackbar snackbar = Snackbar.make(((Activity) context).findViewById(R.id.mainSnackBarView), str_errMsg, Snackbar.LENGTH_SHORT);
+        snackbar.show();
+
+    }
+
+    public static void writeNewUser(final User user) {
+
+        if (user.g_uid == null) {
             throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
         }
 
         DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(g_uid);
+                .child("users").child(user.g_uid);
 
 
 
-
-        mUserReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        ValueEventListener userListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
                 //User checkUser = dataSnapshot.getValue(User.class);
 
                 if (dataSnapshot.exists()) {
-                    User checkUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(g_uid, checkUser.userName, checkUser.email, checkUser.groups);
+                    // if this user exists, create a user with existing information from Firebase database
+                    Log.d(TAG, dataSnapshot.toString());
+                    User savedUser = dataSnapshot.getValue(User.class);
+                    clientUser = new User(savedUser.g_uid, savedUser.userName, savedUser.email, savedUser.groupNames);
                 } else {
-                    clientUser = new User(g_uid, userName, email);
+                    // otherwise, create a new user with default information
+                    Log.d(TAG, "New user detected... Creating new user");
+                    clientUser = new User(user.g_uid, user.userName, user.email);
                 }
 
                 Map<String, Object> userValues = clientUser.toMap();
 
                 Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/users/" + g_uid, userValues);
+                childUpdates.put("/users/" + clientUser.g_uid, userValues);
 
+                // update any information to the database
                 mDatabase.updateChildren(childUpdates);
 
-                //checkGroups = new ArrayList<String>((ArrayList)dataSnapshot.getValue());
-                //Log.d(TAG, Integer.toString(checkGroups.size()) + "HELLO TESTTTTTTTTTTTTT");
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        });
-
-
-        //Log.d(TAG, Integer.toString(checkGroups.size()) + "HELLO TESTTTTTTTTTTTTT");
-
-        //Log.d(TAG, Integer.toString(checkGroups.size()));
-
-
-
-
-        return 1;
-    }
-
-    public static int writeNewGroup(String groupName, User user) {
-
-        if (user.g_uid == null) {
-            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
-        }
-
-       DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(user.g_uid);
-
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                User checkUser = dataSnapshot.getValue(User.class);
-                checkGroupCount = checkUser.groupCount + 1;
             }
 
             @Override
@@ -111,42 +101,103 @@ public class FirebaseManageJSON {
             }
         };
 
-        mGroupReference.addListenerForSingleValueEvent(postListener);
+        mUserReference.addListenerForSingleValueEvent(userListener);
 
-        // Remove post value event listener
-        if (postListener != null) {
-            mGroupReference.removeEventListener(postListener);
+        mUserReference.removeEventListener(userListener);
+
+    }
+
+    public static void writeNewGroup(final String groupName, final User user) {
+
+        if (user.g_uid == null) {
+            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
         }
 
+       DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(user.g_uid);
 
-        Log.d(TAG, Integer.toString(checkGroupCount));
+        ValueEventListener groupListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
 
-        // If user attempts to create more groups than 3, don't proceed
-        if (checkGroupCount < 0 || checkGroupCount > 3)
-        {
-            return -1;
-        }
+                if (dataSnapshot.exists()) {
 
-        String groupKey = mDatabase.child("groups").push().getKey();
+                    // if this user exists, create a user with existing information from Firebase database
+                    int checkGroupCount = dataSnapshot.getValue(User.class).groupCount;
 
-        Group group = new Group(groupName, user);
+                    // If user attempts to create more groups than 3, don't proceed
+                    if (checkGroupCount < 0 || checkGroupCount > GROUP_COUNT_MAX_LIMIT - 1)
+                    {
+                        Log.d(TAG, "User has reached the max amount of groups to be in: " + GROUP_COUNT_MAX_LIMIT);
+                        // On Failure
+                        updateSnackbarResult(-1);
+                        return;
+                    }
+                }
 
-        Map<String, Object> groupValues = group.toMap();
-        Map<String, Object> userValues = user.toMap();
+                else {
+                    // otherwise, create a new user with default information
+                    //writeNewUser(user);
+                }
 
-        Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/groups/" + groupKey, groupValues);
-        childUpdates.put("/users/" + user.g_uid, userValues);
+                String groupKey = mDatabase.child("groups").push().getKey();
 
-        mDatabase.updateChildren(childUpdates);
+                Group group = new Group(groupKey, groupName, user);
 
-        return 1;
+                Map<String, Object> groupValues = group.toMap();
+                Map<String, Object> userValues = user.toMap();
+
+                Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/groups/" + groupKey, groupValues);
+                childUpdates.put("/users/" + user.g_uid, userValues);
+
+                mDatabase.updateChildren(childUpdates);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+
+        mGroupReference.addListenerForSingleValueEvent(groupListener);
+        mGroupReference.removeEventListener(groupListener);
+
+
+        // On Success
+        updateSnackbarResult(1);
     }
 
 
     public static void deleteAccount(User user)
     {
-        mDatabase.child("users").child(user.g_uid).removeValue();
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        for (Group group: user.groups) {
+
+            if (user.userName == group.getAuthor()) {
+                childUpdates.put("/groups/" + group.getId(), null);
+
+                //TODO Find a way to remove each user from the group that was deleted...
+            }
+        }
+
+        childUpdates.put("/users/" + user.g_uid, null);
+
+        /*Group group = new Group(groupId, groupName, user);
+
+        Map<String, Object> groupValues = group.toMap();
+        Map<String, Object> userValues = user.toMap();
+
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/groups/" + groupId, groupValues);
+        childUpdates.put("/users/" + user.g_uid, userValues);
+        */
+
+        mDatabase.updateChildren(childUpdates);
     }
 
 
