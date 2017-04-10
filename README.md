@@ -12,6 +12,7 @@
 4. [General Explanation](#general-explanation)
 5. [Relevant Knowledge Center](#relevant-knowledge-center)
 6. [Possible Features for the Future](#possible-features-for-later-on)
+
 ___
 
 #### Prerequisites:
