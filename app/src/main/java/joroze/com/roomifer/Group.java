@@ -9,11 +9,11 @@ import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
-import static joroze.com.roomifer.LoginActivity.user;
-
 
 /**
  * Created by roseje57 on 4/8/2017.
@@ -25,10 +25,11 @@ public class Group {
     @Exclude
     public String id = Integer.toString(this.hashCode());
 
-    public int memberCount = 0;
-
+    public String author;
     public String groupName;
-    public ArrayList<String> userNames;
+
+    public Map<String, Boolean> userNames = new HashMap<>();
+    public int memberCount = 0;
 
     public Group() {
 
@@ -44,18 +45,31 @@ public class Group {
         writeNewGroup(this);
 
         for (String aUserName : userNames){
-            writeNewUser(new User(user.id, aUserName, user.email, groupName));
+            writeNewUser(new User(user.g_uid, aUserName, user.email, groupName));
         }
 
     }
+
     */
     public Group(String groupName, User user) {
         this.groupName = groupName;
-        this.userNames = new ArrayList<String>();
-        this.userNames.add(user.userName);
+        this.author = user.userName;
+        this.userNames.put(user.userName, true);
         memberCount = this.userNames.size();
 
-        writeNewGroup(this);
+        user.addToGroup(groupName);
+    }
+
+    @Exclude
+    public Map<String, Object> toMap()
+    {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("author", author);
+        result.put("groupName", groupName);
+        result.put("memberCount", memberCount);
+        result.put("members", userNames);
+
+        return result;
     }
 
 

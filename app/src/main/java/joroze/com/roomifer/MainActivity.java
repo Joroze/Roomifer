@@ -24,7 +24,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.LoginActivity.UseSilentSignIn;
-import static joroze.com.roomifer.LoginActivity.user;
+import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -76,10 +76,17 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
 
-                group = new Group("6 Columbia Gang", user);
+                int result = writeNewGroup("6 Columbia Gang", clientUser);
 
-                Snackbar.make(view, "What now?", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                if (result == 1)
+                {
+                    Snackbar.make(view, "Successfully created your group!", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+
+                else
+                    Snackbar.make(view, "Error! You can only belong up to 3 groups.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
 
 
             }
@@ -185,7 +192,7 @@ public class MainActivity extends AppCompatActivity
                     mGoogleApiClient.clearDefaultAccountAndReconnect();
                     // updateUI(false);
 
-                    deleteAccount(user);
+                    deleteAccount(clientUser);
                     Log.d(TAG, "Log out successful!");
 
                     UseSilentSignIn = false;
@@ -224,8 +231,8 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
-            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + user.userName, Snackbar.LENGTH_SHORT);
-            snackbar.show();
+            //Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.userName, Snackbar.LENGTH_SHORT);
+            //snackbar.show();
         }
 
        //Toast.makeText(this,"Signed in as: " + acct.getDisplayName(), Toast.LENGTH_SHORT);

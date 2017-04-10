@@ -25,6 +25,8 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
+
 /**
  * A login screen that offers login via email/password.
  */
@@ -35,7 +37,7 @@ public class LoginActivity extends AppCompatActivity implements
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
 
-    public static User user;
+    //public static User user;
 
     private GoogleApiClient mGoogleApiClient;
     private TextView mStatusTextView;
@@ -109,10 +111,6 @@ public class LoginActivity extends AppCompatActivity implements
             Log.d(TAG, "Got cached sign-in");
             GoogleSignInResult result = opr.get();
             handleSignInResult(result);
-            // Go to the main activity!
-            //Intent nextActivity = new Intent(this, MainActivity.class);
-            //startActivity(nextActivity);
-            //finish();
 
         } else if (UseSilentSignIn){
             // If the user has not previously signed in on this device or the sign-in has expired,
@@ -126,6 +124,7 @@ public class LoginActivity extends AppCompatActivity implements
                     handleSignInResult(googleSignInResult);
                 }
             });
+
         }
     }
 
@@ -150,9 +149,8 @@ public class LoginActivity extends AppCompatActivity implements
             GoogleSignInAccount acct = result.getSignInAccount();
 
 
-            user = new User(acct.getId(), acct.getDisplayName(), acct.getEmail());
-
-            User user2 = new User("10101", acct.getDisplayName(), acct.getEmail(), "6 Columbia Gang");
+            //user = new User(acct.getId(), acct.getDisplayName(), acct.getEmail());
+            writeNewUser(acct.getId(), acct.getDisplayName(), acct.getEmail());
 
             Intent nextActivity = new Intent(this, MainActivity.class);
             startActivity(nextActivity);

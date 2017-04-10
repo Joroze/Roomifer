@@ -1,15 +1,11 @@
 package joroze.com.roomifer;
 
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
+import java.util.Map;
 
 /**
  * Created by roseje57 on 4/8/2017.
@@ -19,52 +15,56 @@ import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 public class User {
 
     @Exclude
-    public String id;
-    public int numOfGroups = 0;
+    protected static User clientUser;
+
+    //public String fbUserKey;
+
+    @Exclude
+    public String g_uid;
 
     public String userName;
     public String email;
 
-    public ArrayList<String> groupNames;
+    public ArrayList<String> groups = new ArrayList<>();
+    public int groupCount = 0;
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String id, String userName, String email) {
-        this.id = id;
+    public User(String g_uid, String userName, String email) {
+        //this.fbUserKey = fbUserKey;
+        this.g_uid = g_uid;
         this.userName = userName;
         this.email = email;
-
-        writeNewUser(this);
     }
 
-    public User(String id, String userName, String email, String groupName) {
-        this.id = id;
+    public User(String g_uid, String userName, String email, ArrayList<String> groups) {
+        //this.fbUserKey = fbUserKey;
+        this.g_uid = g_uid;
         this.userName = userName;
         this.email = email;
-        this.groupNames = new ArrayList<>();
-        this.groupNames.add(groupName);
-        numOfGroups = this.groupNames.size();
-
-        writeNewUser(this);
-        //writeNewGroup(new Group(groupName, userName));
+        this.groups = groups;
+        this.groupCount = groups.size();
     }
 
-    //TODO Group limit... You can belong up to 3 groups?
-    public User(String id, String userName, String email, String... groupNames) {
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-        this.groupNames = new ArrayList<String>(Arrays.asList(groupNames));
-        this.numOfGroups = this.groupNames.size();
+    @Exclude
+    public void addToGroup(String groupName)
+    {
+        groups.add(groupName);
+        groupCount = groups.size();
+    }
 
-        writeNewUser(this);
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("g_uid", g_uid);
+        result.put("userName", userName);
+        result.put("email", email);
+        result.put("groupCount", groupCount);
+        result.put("groups", groups);
 
-        //for (String aGroupName: groupNames) {
-        //    writeNewGroup(new Group(aGroupName, userName));
-        //}
-
+        return result;
     }
 
 
