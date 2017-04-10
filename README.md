@@ -3,7 +3,12 @@
 
 ### Roomifer is a great tool for managing errands and other tasks with your roommates, together.
 
-![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "for Android")
+![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
+
+
+[Link to a header](#Prerequisites)
+
+
 #### Prerequisites:
 
 The project should involve at least some experience with the following:
