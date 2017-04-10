@@ -6,12 +6,12 @@
 ![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
 
 # Section Links
-* [Prerequisites](#prerequisites)
-* [App Description/Introduction](#app-descriptionintroduction)
-* [App Goal](#app-goal)
-* [General Explanation](#general-explanation)
-* [Relevant Knowledge Center](#relevant-knowledge-center)
-* [Possible Features for the Future](#possible-features-for-later-on)
+1. [Prerequisites](#prerequisites)
+2. [App Description/Introduction](#app-descriptionintroduction)
+3. [App Goal](#app-goal)
+4. [General Explanation](#general-explanation)
+5. [Relevant Knowledge Center](#relevant-knowledge-center)
+6. [Possible Features for the Future](#possible-features-for-later-on)
 ___
 
 #### Prerequisites:
