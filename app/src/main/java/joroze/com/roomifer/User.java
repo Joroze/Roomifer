@@ -63,7 +63,7 @@ public class User {
         this.groupNames = groupNames;
 
         for (String names: groupNames) {
-            this.groups.add(new Group(g_uid, name, new User(g_uid, userName, email)));
+            this.groups.add(new Group(fb_uid, name, new User(fb_uid, userName, email)));
         }
 
         this.groupCount = this.groups.size();
