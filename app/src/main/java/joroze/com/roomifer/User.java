@@ -23,23 +23,13 @@ public class User {
     @Exclude
     protected static User clientUser;
 
-    public String getFb_uid() {
-        return fb_uid;
-    }
-
-    public void setFb_uid(String fb_uid) {
-        this.fb_uid = fb_uid;
-    }
 
     @Exclude
     private String fb_uid;
 
-    ArrayList<String> groupNames = new ArrayList<String>();
-
     private String userName;
     private String email;
 
-    @Exclude
     private ArrayList<Group> groups = new ArrayList<Group>();
 
     private int groupCount = 0;
@@ -55,16 +45,20 @@ public class User {
         this.email = email;
     }
 
-    public User(String fb_uid, String userName, String email, ArrayList<String> groupNames) {
+    public User(String fb_uid, String userName, String email, ArrayList<Group> groups) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.userName = userName;
         this.email = email;
-        this.groupNames = groupNames;
+        this.groups = groups;
 
-        for (String names: groupNames) {
-            this.groups.add(new Group(fb_uid, name, new User(fb_uid, userName, email)));
+        for (Group group: this.groups) {
+            Log.d(TAG, "USER GROUPS ADDEDDDDDDD");
+            Log.d(TAG, group.getId());
+            Log.d(TAG, group.getGroupName());
+            Log.d(TAG, group.getAuthor());
         }
+
 
         this.groupCount = this.groups.size();
 
@@ -76,26 +70,30 @@ public class User {
         groups.add(group);
         groupCount = groups.size();
 
-        groupNames.add(group.getGroupName());
+        //groupNames.add(group.getGroupName());
     }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
-        groupNames = new ArrayList<String>();
-
-        for (Group group: groups) {
-            groupNames.add(group.getGroupName());
-        }
 
         result.put("fb_uid", fb_uid);
         result.put("userName", userName);
         result.put("email", email);
         result.put("groupCount", groupCount);
-        result.put("groupNames", groupNames);
+        result.put("groups", groups);
 
         return result;
+    }
+
+
+    public String getFb_uid() {
+        return fb_uid;
+    }
+
+    public void setFb_uid(String fb_uid) {
+        this.fb_uid = fb_uid;
     }
 
     public String getG_uid() {
@@ -106,13 +104,6 @@ public class User {
         this.fb_uid = fb_uid;
     }
 
-    public ArrayList<String> getGroupNames() {
-        return groupNames;
-    }
-
-    public void setGroupNames(ArrayList<String> groupNames) {
-        this.groupNames = groupNames;
-    }
 
     public String getUserName() {
         return userName;

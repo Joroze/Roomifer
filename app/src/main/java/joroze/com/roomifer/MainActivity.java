@@ -1,6 +1,9 @@
 package joroze.com.roomifer;
 
+import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,7 +22,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -29,7 +34,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 
+import static joroze.com.roomifer.FirebaseManageJSON.context;
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
@@ -67,64 +75,102 @@ public class MainActivity extends AppCompatActivity
         // [END build_client]
 
 
-        String googleID = getIntent().getStringExtra("id");
-        String googleName = getIntent().getStringExtra("name");
-        String googleEmail = getIntent().getStringExtra("email");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        clientUser = new User(googleID, googleName, googleEmail);
-        writeNewUser(clientUser);
+        if (user != null) {
+            // User is signed in
+            String displayName = user.getDisplayName();
+            String fb_uid = user.getUid();
+            String email = user.getEmail();
+            Uri profileUri = user.getPhotoUrl();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showCreateGroupDialog();
+            // If the above were null, iterate the provider data
+            // and set with the first non null data
+            for (UserInfo userInfo : user.getProviderData()) {
+                if (displayName == null && userInfo.getDisplayName() != null) {
+                    displayName = userInfo.getDisplayName();
+                }
+                if (fb_uid == null && userInfo.getUid() != null) {
+                    fb_uid = userInfo.getUid();
+                }
+                if (email == null && userInfo.getEmail() != null) {
+                    email = userInfo.getEmail();
+                }
+                if (profileUri == null && userInfo.getPhotoUrl() != null) {
+                    profileUri = userInfo.getPhotoUrl();
+                }
             }
-        });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            // User should not need to go to the previous activity this way
-            //super.onBackPressed();
+            clientUser = new User(fb_uid, displayName, email);
+            writeNewUser(clientUser);
         }
-    }
+
+            //ImageView imageView = (ImageView) findViewById(R.id.profileImageView2);
+
+            //Log.d(TAG, fbUser.getPhotoUrl().toString());
+
+            //Glide.with(this).load(fbUser.getPhotoUrl().toString()).into(imageView);
 
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
 
-        return true;
-    }
+            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showCreateGroupDialog();
+                }
+            });
 
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        String message = "Roomifer is awesome!";
-        Intent share = new Intent(Intent.ACTION_SEND);
-        share.setType("text/plain");
-        share.putExtra(Intent.EXTRA_TEXT, message);
+
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            drawer.setDrawerListener(toggle);
+
+            toggle.syncState();
+
+            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(this);
+
+            drawer.openDrawer(GravityCompat.START);
+
+        }
+
+        @Override
+        public void onBackPressed () {
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            if (drawer.isDrawerOpen(GravityCompat.START)) {
+                drawer.closeDrawer(GravityCompat.START);
+            } else {
+                // User should not need to go to the previous activity this way
+                //super.onBackPressed();
+            }
+        }
+
+
+        @Override
+        public boolean onCreateOptionsMenu (Menu menu){
+            // Inflate the menu; this adds items to the action bar if it is present.
+            getMenuInflater().inflate(R.menu.main, menu);
+
+            return true;
+        }
+
+
+        @Override
+        public boolean onOptionsItemSelected (MenuItem item){
+
+            String message = "Roomifer is awesome!";
+            Intent share = new Intent(Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.putExtra(Intent.EXTRA_TEXT, message);
 
 /*
         This is for future reference if we're going to share Binary Objects AKA media (Images, videos etc.)
@@ -138,26 +184,24 @@ public class MainActivity extends AppCompatActivity
 */
 
 
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+            // Handle action bar item clicks here. The action bar will
+            // automatically handle clicks on the Home/Up button, so long
+            // as you specify a parent activity in AndroidManifest.xml.
+            int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_menu) {
-            startActivity(Intent.createChooser(share, "Share using Messenger"));
-            return true;
+            //noinspection SimplifiableIfStatement
+            if (id == R.id.action_menu) {
+                startActivity(Intent.createChooser(share, "Share using Messenger"));
+                return true;
+            }
+
+            return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
-    }
 
-
-
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item){
+        @SuppressWarnings("StatementWithEmptyBody")
+        @Override
+        public boolean onNavigationItemSelected (MenuItem item){
             // Handle navigation view item clicks here.
             int id = item.getItemId();
 
@@ -173,27 +217,27 @@ public class MainActivity extends AppCompatActivity
                 revokeAccess();
             }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
 
         }
 
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+        @Override
+        public void onConnected (@Nullable Bundle bundle){
 
-    }
+        }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-        mGoogleApiClient.connect();
-    }
+        @Override
+        public void onConnectionSuspended ( int i){
+            mGoogleApiClient.connect();
+        }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG, "Connection FAILED!");
-    }
+        @Override
+        public void onConnectionFailed (@NonNull ConnectionResult connectionResult){
+            Log.d(TAG, "Connection FAILED!");
+        }
 
     public void signOut() {
         Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
@@ -237,15 +281,13 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    protected void onStart()
-    {
-
+    protected void onStart() {
 
 
         super.onStart();
 
-            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.getUserName(), Snackbar.LENGTH_SHORT);
-            snackbar.show();
+        Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.getUserName(), Snackbar.LENGTH_SHORT);
+        snackbar.show();
 
     }
 
@@ -264,7 +306,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
-        EditText mEdit = (EditText)dialog.getDialog().findViewById(R.id.createGroupTextEntry);
+        EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createGroupTextEntry);
         writeNewGroup(mEdit.getText().toString(), clientUser);
     }
 

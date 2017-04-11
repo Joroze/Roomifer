@@ -55,6 +55,7 @@ public class FirebaseManageJSON {
 
     }
 
+    // TODO: If groups that belong to a user exist, but the user has not been created on the database yet, assign those groups to the user on creation
     public static void writeNewUser(final User user) {
 
         if (user.getFb_uid() == null) {
@@ -76,7 +77,7 @@ public class FirebaseManageJSON {
                     // if this user exists, create a user with existing information from Firebase database
                     Log.d(TAG, dataSnapshot.toString());
                     User savedUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(savedUser.getFb_uid(), savedUser.getUserName(), savedUser.getEmail(), savedUser.groupNames);
+                    clientUser = new User(savedUser.getFb_uid(), savedUser.getUserName(), savedUser.getEmail(), savedUser.getGroups());
                 } else {
                     // otherwise, create a new user with default information
                     Log.d(TAG, "New user detected... Creating new user");
@@ -178,8 +179,12 @@ public class FirebaseManageJSON {
 
         for (Group group: user.getGroups()) {
 
-            if (user.getUserName() == group.getAuthor()) {
+            if (user.getUserName().equals(group.getAuthor())) {
                 childUpdates.put("/groups/" + group.getId(), null);
+
+                Log.d(TAG, group.getAuthor() + "AUTHOR ISSSSSSSSSS");
+                Log.d(TAG, user.getUserName() + "USERNAME ISSSSSSSSSS");
+                Log.d(TAG, group.getId() + "GROUPID ISSSSSSSSSS");
 
                 //TODO Find a way to remove each user from the group that was deleted...
             }
