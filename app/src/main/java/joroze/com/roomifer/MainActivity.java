@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -16,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -30,7 +33,7 @@ import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
 
     private static final String TAG = "SignInActivity";
 
@@ -78,10 +81,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
-
-                writeNewGroup("6 Columbia Gang", clientUser);
+                showCreateGroupDialog();
             }
         });
 
@@ -248,4 +248,20 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void showCreateGroupDialog() {
+        // Create an instance of the dialog fragment and show it
+        DialogFragment dialog = new CreateGroupDialogFragment();
+        dialog.show(getSupportFragmentManager(), "CreateGroupDialogFragment");
+    }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+        EditText mEdit = (EditText)dialog.getDialog().findViewById(R.id.createGroupTextEntry);
+        writeNewGroup(mEdit.getText().toString(), clientUser);
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+
+    }
 }
