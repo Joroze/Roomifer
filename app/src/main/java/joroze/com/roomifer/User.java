@@ -55,7 +55,7 @@ public class User {
         this.groupNames = groupNames;
 
         for (String names: groupNames) {
-            groupNames.add(names);
+            this.groups.add(new Group(g_uid, name, new User(g_uid, userName, email)));
         }
 
         this.groupCount = groups.size();
