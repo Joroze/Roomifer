@@ -23,33 +23,41 @@ public class User {
     @Exclude
     protected static User clientUser;
 
-    //public String fbUserKey;
+    public String getFb_uid() {
+        return fb_uid;
+    }
 
-    public String g_uid;
-    ArrayList<String> groupNames = new ArrayList<String>();
-
-    public String userName;
-    public String email;
+    public void setFb_uid(String fb_uid) {
+        this.fb_uid = fb_uid;
+    }
 
     @Exclude
-    public ArrayList<Group> groups = new ArrayList<Group>();
+    private String fb_uid;
 
-    public int groupCount = 0;
+    ArrayList<String> groupNames = new ArrayList<String>();
+
+    private String userName;
+    private String email;
+
+    @Exclude
+    private ArrayList<Group> groups = new ArrayList<Group>();
+
+    private int groupCount = 0;
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String g_uid, String userName, String email) {
+    public User(String fb_uid, String userName, String email) {
         //this.fbUserKey = fbUserKey;
-        this.g_uid = g_uid;
+        this.fb_uid = fb_uid;
         this.userName = userName;
         this.email = email;
     }
 
-    public User(String g_uid, String userName, String email, ArrayList<String> groupNames) {
+    public User(String fb_uid, String userName, String email, ArrayList<String> groupNames) {
         //this.fbUserKey = fbUserKey;
-        this.g_uid = g_uid;
+        this.fb_uid = fb_uid;
         this.userName = userName;
         this.email = email;
         this.groupNames = groupNames;
@@ -81,7 +89,7 @@ public class User {
             groupNames.add(group.getGroupName());
         }
 
-        result.put("g_uid", g_uid);
+        result.put("fb_uid", fb_uid);
         result.put("userName", userName);
         result.put("email", email);
         result.put("groupCount", groupCount);
@@ -91,11 +99,11 @@ public class User {
     }
 
     public String getG_uid() {
-        return g_uid;
+        return fb_uid;
     }
 
     public void setG_uid(String g_uid) {
-        this.g_uid = g_uid;
+        this.fb_uid = fb_uid;
     }
 
     public ArrayList<String> getGroupNames() {

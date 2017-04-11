@@ -21,11 +21,14 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.firebase.auth.FirebaseAuth;
 
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
@@ -70,8 +73,6 @@ public class MainActivity extends AppCompatActivity
 
         clientUser = new User(googleID, googleName, googleEmail);
         writeNewUser(clientUser);
-
-
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -199,6 +200,10 @@ public class MainActivity extends AppCompatActivity
                 new ResultCallback<Status>() {
                     @Override
                     public void onResult(Status status) {
+
+                        // Firebase sign out
+                        FirebaseAuth.getInstance().signOut();
+
                         if (status.isSuccess())
                             Log.d(TAG, "Log Out successful!");
                         else
@@ -218,6 +223,9 @@ public class MainActivity extends AppCompatActivity
 
                         deleteAccount(clientUser);
 
+                        // Firebase sign out
+                        FirebaseAuth.getInstance().signOut();
+
                         if (status.isSuccess())
                             Log.d(TAG, "Revoke successful!");
                         else
@@ -236,7 +244,7 @@ public class MainActivity extends AppCompatActivity
 
         super.onStart();
 
-            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.userName, Snackbar.LENGTH_SHORT);
+            Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.getUserName(), Snackbar.LENGTH_SHORT);
             snackbar.show();
 
     }

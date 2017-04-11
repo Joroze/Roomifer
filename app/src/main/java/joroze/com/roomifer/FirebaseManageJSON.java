@@ -57,12 +57,12 @@ public class FirebaseManageJSON {
 
     public static void writeNewUser(final User user) {
 
-        if (user.g_uid == null) {
+        if (user.getFb_uid() == null) {
             throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
         }
 
         DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(user.g_uid);
+                .child("users").child(user.getFb_uid());
 
 
 
@@ -76,17 +76,17 @@ public class FirebaseManageJSON {
                     // if this user exists, create a user with existing information from Firebase database
                     Log.d(TAG, dataSnapshot.toString());
                     User savedUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(savedUser.g_uid, savedUser.userName, savedUser.email, savedUser.groupNames);
+                    clientUser = new User(savedUser.getFb_uid(), savedUser.getUserName(), savedUser.getEmail(), savedUser.groupNames);
                 } else {
                     // otherwise, create a new user with default information
                     Log.d(TAG, "New user detected... Creating new user");
-                    clientUser = new User(user.g_uid, user.userName, user.email);
+                    clientUser = new User(user.getFb_uid(), user.getUserName(), user.getEmail());
                 }
 
                 Map<String, Object> userValues = clientUser.toMap();
 
                 Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/users/" + clientUser.g_uid, userValues);
+                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
 
                 // update any information to the database
                 mDatabase.updateChildren(childUpdates);
@@ -109,12 +109,12 @@ public class FirebaseManageJSON {
 
     public static void writeNewGroup(final String groupName, final User user) {
 
-        if (user.g_uid == null) {
+        if (user.getFb_uid() == null) {
             throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
         }
 
        DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(user.g_uid);
+                .child("users").child(user.getFb_uid());
 
         ValueEventListener groupListener = new ValueEventListener() {
             @Override
@@ -124,7 +124,7 @@ public class FirebaseManageJSON {
                 if (dataSnapshot.exists()) {
 
                     // if this user exists, create a user with existing information from Firebase database
-                    int checkGroupCount = dataSnapshot.getValue(User.class).groupCount;
+                    int checkGroupCount = dataSnapshot.getValue(User.class).getGroupCount();
 
                     // If user attempts to create more groups than 3, don't proceed
                     if (checkGroupCount < 0 || checkGroupCount > GROUP_COUNT_MAX_LIMIT - 1)
@@ -150,7 +150,7 @@ public class FirebaseManageJSON {
 
                 Map<String, Object> childUpdates = new HashMap<>();
                 childUpdates.put("/groups/" + groupKey, groupValues);
-                childUpdates.put("/users/" + user.g_uid, userValues);
+                childUpdates.put("/users/" + user.getFb_uid(), userValues);
 
                 mDatabase.updateChildren(childUpdates);
             }
@@ -176,16 +176,16 @@ public class FirebaseManageJSON {
     {
         Map<String, Object> childUpdates = new HashMap<>();
 
-        for (Group group: user.groups) {
+        for (Group group: user.getGroups()) {
 
-            if (user.userName == group.getAuthor()) {
+            if (user.getUserName() == group.getAuthor()) {
                 childUpdates.put("/groups/" + group.getId(), null);
 
                 //TODO Find a way to remove each user from the group that was deleted...
             }
         }
 
-        childUpdates.put("/users/" + user.g_uid, null);
+        childUpdates.put("/users/" + user.getFb_uid(), null);
 
         /*Group group = new Group(groupId, groupName, user);
 

@@ -54,8 +54,8 @@ public class Group {
     public Group(String id, String groupName, User user) {
         this.id = id;
         this.groupName = groupName;
-        this.author = user.userName;
-        this.members.put(user.g_uid, true);
+        this.author = user.getUserName();
+        this.members.put(user.getFb_uid(), true);
         this.memberCount = this.members.size();
 
         user.addToGroup(this);
