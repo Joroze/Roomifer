@@ -12,6 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.Auth;
@@ -33,11 +35,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
 
-import static joroze.com.roomifer.FirebaseManageJSON.context;
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
@@ -49,6 +52,11 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = "SignInActivity";
 
     FirebaseManageJSON fbmjson = new FirebaseManageJSON(this);
+
+    FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
+    FirebaseUser mCurrentUser;
 
     GoogleApiClient mGoogleApiClient;
 
@@ -75,76 +83,76 @@ public class MainActivity extends AppCompatActivity
         // [END build_client]
 
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    mCurrentUser = user;
 
-        if (user != null) {
-            // User is signed in
-            String displayName = user.getDisplayName();
-            String fb_uid = user.getUid();
-            String email = user.getEmail();
-            Uri profileUri = user.getPhotoUrl();
-
-            // If the above were null, iterate the provider data
-            // and set with the first non null data
-            for (UserInfo userInfo : user.getProviderData()) {
-                if (displayName == null && userInfo.getDisplayName() != null) {
-                    displayName = userInfo.getDisplayName();
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
-                if (fb_uid == null && userInfo.getUid() != null) {
-                    fb_uid = userInfo.getUid();
-                }
-                if (email == null && userInfo.getEmail() != null) {
-                    email = userInfo.getEmail();
-                }
-                if (profileUri == null && userInfo.getPhotoUrl() != null) {
-                    profileUri = userInfo.getPhotoUrl();
-                }
+                // ...
             }
+        };
 
 
-            clientUser = new User(fb_uid, displayName, email);
-            writeNewUser(clientUser);
-        }
+        //Initialize Firebase Auth
+        mFirebaseAuth = FirebaseAuth.getInstance();
 
-            //ImageView imageView = (ImageView) findViewById(R.id.profileImageView2);
-
-            //Log.d(TAG, fbUser.getPhotoUrl().toString());
-
-            //Glide.with(this).load(fbUser.getPhotoUrl().toString()).into(imageView);
+        clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail());
+        writeNewUser(clientUser);
 
 
 
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
 
-            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showCreateGroupDialog();
-                }
-            });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-
-            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showCreateGroupDialog();
+            }
+        });
 
 
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-            drawer.setDrawerListener(toggle);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-            toggle.syncState();
 
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            navigationView.setNavigationItemSelectedListener(this);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
 
-            drawer.openDrawer(GravityCompat.START);
+        toggle.syncState();
 
-        }
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        View hView = navigationView.getHeaderView(0);
+
+        TextView userNameView = (TextView) hView.findViewById(R.id.usernameView);
+        TextView emailView = (TextView) hView.findViewById(R.id.emailView);
+        ImageView profileImageView = (ImageView) hView.findViewById(R.id.profileImageView);
+
+        userNameView.setText(mCurrentUser.getDisplayName());
+        emailView.setText(mCurrentUser.getEmail());
+
+        //Log.d(TAG, clientUser.getProfilePicture().toString());
+
+        Glide.with(this).load(mCurrentUser.getPhotoUrl().toString()).into(profileImageView);
+
+        drawer.openDrawer(GravityCompat.START);
+    }
 
         @Override
-        public void onBackPressed () {
+        public void onBackPressed() {
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
@@ -153,6 +161,14 @@ public class MainActivity extends AppCompatActivity
                 //super.onBackPressed();
             }
         }
+
+    private void loadLogInView() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
 
 
         @Override
@@ -240,13 +256,19 @@ public class MainActivity extends AppCompatActivity
         }
 
     public void signOut() {
+
+
+        // Firebase sign out
+        FirebaseAuth.getInstance().signOut();
+
+        // Google sign out
         Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
                 new ResultCallback<Status>() {
                     @Override
                     public void onResult(Status status) {
 
                         // Firebase sign out
-                        FirebaseAuth.getInstance().signOut();
+                        mFirebaseAuth.signOut();
 
                         if (status.isSuccess())
                             Log.d(TAG, "Log Out successful!");
@@ -265,10 +287,28 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onResult(Status status) {
 
-                        deleteAccount(clientUser);
 
                         // Firebase sign out
-                        FirebaseAuth.getInstance().signOut();
+                        mFirebaseAuth.signOut();
+
+                        /*
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                        user.delete()
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            Log.d(TAG, "User account deleted.");
+                                        }
+                                    }
+                                });
+
+                                */
+
+                        deleteAccount(clientUser);
+
+
 
                         if (status.isSuccess())
                             Log.d(TAG, "Revoke successful!");
@@ -282,9 +322,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void onStart() {
-
-
         super.onStart();
+
+        mFirebaseAuth.addAuthStateListener(mAuthListener);
 
         Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + clientUser.getUserName(), Snackbar.LENGTH_SHORT);
         snackbar.show();
@@ -295,6 +335,10 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
+        }
+
+        if (mAuthListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthListener);
         }
     }
 
@@ -314,4 +358,7 @@ public class MainActivity extends AppCompatActivity
     public void onDialogNegativeClick(DialogFragment dialog) {
 
     }
+
+
+
 }

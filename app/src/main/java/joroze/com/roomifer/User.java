@@ -1,5 +1,6 @@
 package joroze.com.roomifer;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.google.firebase.database.Exclude;
@@ -27,6 +28,9 @@ public class User {
     @Exclude
     private String fb_uid;
 
+    @Exclude
+    private Uri profilePicture;
+
     private String userName;
     private String email;
 
@@ -43,6 +47,14 @@ public class User {
         this.fb_uid = fb_uid;
         this.userName = userName;
         this.email = email;
+    }
+
+    public User(String fb_uid, String userName, String email, Uri profilePicture) {
+        //this.fbUserKey = fbUserKey;
+        this.fb_uid = fb_uid;
+        this.userName = userName;
+        this.email = email;
+        this.profilePicture = profilePicture;
     }
 
     public User(String fb_uid, String userName, String email, ArrayList<Group> groups) {
@@ -137,4 +149,11 @@ public class User {
         this.groupCount = groupCount;
     }
 
+    public Uri getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(Uri profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 }
