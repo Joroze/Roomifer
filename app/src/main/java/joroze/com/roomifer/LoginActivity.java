@@ -4,16 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-
 import android.os.Bundle;
-
 import android.util.Log;
-
 import android.view.View;
-
-import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -34,11 +28,6 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
-
-/**
- * A login screen that offers login via email/password.
- */
 public class LoginActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener {
@@ -182,12 +171,7 @@ public class LoginActivity extends AppCompatActivity implements
             GoogleSignInAccount acct = result.getSignInAccount();
             firebaseAuthWithGoogle(acct);
 
-
             Intent nextActivity = new Intent(this, MainActivity.class);
-            nextActivity.putExtra("id", acct.getId());
-            nextActivity.putExtra("name", acct.getDisplayName());
-            nextActivity.putExtra("email", acct.getEmail());
-
             startActivity(nextActivity);
 
         } else {
