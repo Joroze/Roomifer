@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -35,19 +36,22 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import static joroze.com.roomifer.FirebaseManageJSON.GROUP_COUNT_MAX_LIMIT;
+import joroze.com.roomifer.dummy.DummyContent;
+
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
+        implements GroupListFragment.OnListFragmentInteractionListener, GroupListFragment.MyFragInterface,NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
 
     private static final String TAG = "SignInActivity";
 
     FirebaseManageJSON fbmjson = new FirebaseManageJSON(this);
 
+
+    private GroupListFragment.OnListFragmentInteractionListener mListener;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -368,6 +372,7 @@ public class MainActivity extends AppCompatActivity
     public void onDialogPositiveClick(DialogFragment dialog) {
         EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createGroupTextEntry);
         writeNewGroup(mEdit.getText().toString(), clientUser);
+        showGroupList();
     }
 
     @Override
@@ -376,4 +381,34 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
+
+
+    }
+
+    @Override
+    public void showGroupList() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        //find the fragment by View or Tag
+        GroupListFragment myFrag = (GroupListFragment)fragmentManager.findFragmentById(R.id.grouplistfragment);
+        fragmentTransaction.show(myFrag);
+        fragmentTransaction.commit();
+        //do more if you must
+    }
+
+    @Override
+    public void hideGroupList() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        //find the fragment by View or Tag
+        GroupListFragment myFrag = (GroupListFragment)fragmentManager.findFragmentById(R.id.grouplistfragment);
+        fragmentTransaction.hide(myFrag);
+        fragmentTransaction.commit();
+        //do more if you must
+    }
 }

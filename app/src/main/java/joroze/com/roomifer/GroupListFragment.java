@@ -13,15 +13,13 @@ import android.view.ViewGroup;
 import joroze.com.roomifer.dummy.DummyContent;
 import joroze.com.roomifer.dummy.DummyContent.DummyItem;
 
-import java.util.List;
-
 /**
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class ItemFragment extends Fragment {
+public class GroupListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -29,22 +27,51 @@ public class ItemFragment extends Fragment {
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
 
+
+    public interface MyFragInterface {
+
+        public void showGroupList();
+        public void hideGroupList();
+
+    }
+
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ItemFragment() {
+    public GroupListFragment() {
     }
+
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static ItemFragment newInstance(int columnCount) {
-        ItemFragment fragment = new ItemFragment();
+    public static GroupListFragment newInstance(int columnCount) {
+        GroupListFragment fragment = new GroupListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
         return fragment;
     }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        // Making sure Main activity implemented interface
+        try {
+            if (true) {
+                ((MyFragInterface)this.getActivity()).hideGroupList();
+            }
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Calling activity must implement MyFragInterface");
+        }
+
+        super.onViewCreated(view, savedInstanceState);
+
+
+
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,6 +98,7 @@ public class ItemFragment extends Fragment {
             }
             recyclerView.setAdapter(new MyItemRecyclerViewAdapter(DummyContent.ITEMS, mListener));
         }
+
         return view;
     }
 

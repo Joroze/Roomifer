@@ -15,6 +15,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <fragment
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/grouplistfragment"
+            android:name="joroze.com.roomifer.GroupListFragment"
+
+            tools:layout="@layout/fragment_item_list" />
+
+
         <ImageView
             android:id="@+id/nogroups"
             android:layout_width="wrap_content"
