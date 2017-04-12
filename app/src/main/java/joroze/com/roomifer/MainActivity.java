@@ -2,13 +2,13 @@ package joroze.com.roomifer;
 
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -35,8 +35,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.w3c.dom.Text;
-
+import static joroze.com.roomifer.FirebaseManageJSON.GROUP_COUNT_MAX_LIMIT;
 import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
 import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
@@ -99,7 +98,7 @@ public class MainActivity extends AppCompatActivity
                     // Currently signed in
                     mCurrentUser = user;
 
-                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail());
+                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), mCurrentUser.getPhotoUrl());
                     writeNewUser(clientUser);
 
                     updateUserProfile();
@@ -133,6 +132,7 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
     }
 
     @Override
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity
         TextView emailView = (TextView) hView.findViewById(R.id.emailView);
         ImageView profileImageView = (ImageView) hView.findViewById(R.id.profileImageView);
 
-        if (mCurrentUser.getDisplayName() != null)
+        if (clientUser.getDisplayName() != null)
             userNameView.setText(mCurrentUser.getDisplayName());
 
         if (mCurrentUser.getEmail() != null)
@@ -235,9 +235,44 @@ public class MainActivity extends AppCompatActivity
         if (mCurrentUser.getPhotoUrl().toString() != null)
             Glide.with(this).load(mCurrentUser.getPhotoUrl().toString()).into(profileImageView);
 
-        Snackbar snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), "Signed in as " + mCurrentUser.getDisplayName(), Snackbar.LENGTH_SHORT);
-        snackbar.show();
+        showSnackbar(1);
 
+    }
+
+    public void showSnackbar(int resultCode)
+    {
+        Snackbar snackbar;
+        String snackbarMsg = "";
+
+        if (resultCode > 0)
+        {
+
+            switch (resultCode)
+            {
+                case 1:
+                    snackbarMsg = "Signed in as " + mCurrentUser.getDisplayName();
+                    break;
+                default:
+                    snackbarMsg = "An unknown error has occurred!";
+                    break;
+            }
+        }
+        else if (resultCode < 0)
+        {
+            switch (resultCode)
+            {
+                //case -1:
+                    // Not sure what to use for -1 yet... Maybe a Sign-In error to be displayed.
+                //    break;
+
+                default:
+                    snackbarMsg = "An unknown error has occurred!";
+                    break;
+            }
+        }
+
+        snackbar = Snackbar.make(this.findViewById(R.id.mainSnackBarView), snackbarMsg, Snackbar.LENGTH_SHORT);
+        snackbar.show();
     }
 
     public void signOut() {
@@ -318,6 +353,8 @@ public class MainActivity extends AppCompatActivity
 
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
+            if (mCurrentUser != null)
+                showSnackbar(1);
         }
     }
 

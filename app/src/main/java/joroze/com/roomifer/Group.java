@@ -1,19 +1,10 @@
 package joroze.com.roomifer;
 
-import android.util.Log;
-
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 
 /**
  * Created by roseje57 on 4/8/2017.
@@ -54,7 +45,7 @@ public class Group {
     public Group(String id, String groupName, User user) {
         this.id = id;
         this.groupName = groupName;
-        this.author = user.getUserName();
+        this.author = user.getDisplayName();
         this.members.put(user.getFb_uid(), true);
         this.memberCount = this.members.size();
 

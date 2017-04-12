@@ -29,9 +29,9 @@ public class User {
     private String fb_uid;
 
     @Exclude
-    private Uri profilePicture;
+    private Uri profilePictureUri;
 
-    private String userName;
+    private String displayName;
     private String email;
 
     private ArrayList<Group> groups = new ArrayList<Group>();
@@ -42,38 +42,28 @@ public class User {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String fb_uid, String userName, String email) {
+    public User(String fb_uid, String displayName, String email) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
-        this.userName = userName;
+        this.displayName = displayName;
         this.email = email;
     }
 
-    public User(String fb_uid, String userName, String email, Uri profilePicture) {
+    public User(String fb_uid, String displayName, String email, Uri profilePicture) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
-        this.userName = userName;
+        this.displayName = displayName;
         this.email = email;
-        this.profilePicture = profilePicture;
+        this.profilePictureUri = profilePicture;
     }
 
-    public User(String fb_uid, String userName, String email, ArrayList<Group> groups) {
+    public User(String fb_uid, String displayName, String email, ArrayList<Group> groups) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
-        this.userName = userName;
+        this.displayName = displayName;
         this.email = email;
         this.groups = groups;
-
-        for (Group group: this.groups) {
-            Log.d(TAG, "USER GROUPS ADDEDDDDDDD");
-            Log.d(TAG, group.getId());
-            Log.d(TAG, group.getGroupName());
-            Log.d(TAG, group.getAuthor());
-        }
-
-
         this.groupCount = this.groups.size();
-
     }
 
     @Exclude
@@ -81,17 +71,14 @@ public class User {
     {
         groups.add(group);
         groupCount = groups.size();
-
-        //groupNames.add(group.getGroupName());
     }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
-
         result.put("fb_uid", fb_uid);
-        result.put("userName", userName);
+        result.put("displayName", displayName);
         result.put("email", email);
         result.put("groupCount", groupCount);
         result.put("groups", groups);
@@ -117,12 +104,12 @@ public class User {
     }
 
 
-    public String getUserName() {
-        return userName;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getEmail() {
@@ -149,11 +136,11 @@ public class User {
         this.groupCount = groupCount;
     }
 
-    public Uri getProfilePicture() {
-        return profilePicture;
+    public Uri getProfilePictureUri() {
+        return profilePictureUri;
     }
 
-    public void setProfilePicture(Uri profilePicture) {
-        this.profilePicture = profilePicture;
+    public void setProfilePictureUri(Uri profilePictureUri) {
+        this.profilePictureUri = profilePictureUri;
     }
 }

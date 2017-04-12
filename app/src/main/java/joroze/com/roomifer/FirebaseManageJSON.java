@@ -11,7 +11,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,11 +76,11 @@ public class FirebaseManageJSON {
                     // if this user exists, create a user with existing information from Firebase database
                     Log.d(TAG, dataSnapshot.toString());
                     User savedUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(savedUser.getFb_uid(), savedUser.getUserName(), savedUser.getEmail(), savedUser.getGroups());
+                    clientUser = new User(savedUser.getFb_uid(), savedUser.getDisplayName(), savedUser.getEmail(), savedUser.getGroups());
                 } else {
                     // otherwise, create a new user with default information
                     Log.d(TAG, "New user detected... Creating new user");
-                    clientUser = new User(user.getFb_uid(), user.getUserName(), user.getEmail());
+                    clientUser = new User(user.getFb_uid(), user.getDisplayName(), user.getEmail());
                 }
 
                 Map<String, Object> userValues = clientUser.toMap();
@@ -179,11 +178,11 @@ public class FirebaseManageJSON {
 
         for (Group group: user.getGroups()) {
 
-            if (user.getUserName().equals(group.getAuthor())) {
+            if (user.getDisplayName().equals(group.getAuthor())) {
                 childUpdates.put("/groups/" + group.getId(), null);
 
                 Log.d(TAG, group.getAuthor() + "AUTHOR ISSSSSSSSSS");
-                Log.d(TAG, user.getUserName() + "USERNAME ISSSSSSSSSS");
+                Log.d(TAG, user.getDisplayName() + "USERNAME ISSSSSSSSSS");
                 Log.d(TAG, group.getId() + "GROUPID ISSSSSSSSSS");
 
                 //TODO Find a way to remove each user from the group that was deleted...
