@@ -2,6 +2,7 @@ package joroze.com.roomifer;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -46,6 +47,7 @@ public class LoginActivity extends AppCompatActivity implements
 
     private GoogleApiClient mGoogleApiClient;
     private ProgressDialog mProgressDialog;
+
 
     /**
      * Id to identity READ_CONTACTS permission request.

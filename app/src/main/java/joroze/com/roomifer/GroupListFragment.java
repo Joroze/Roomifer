@@ -6,9 +6,14 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
 
 import joroze.com.roomifer.dummy.DummyContent;
 import joroze.com.roomifer.dummy.DummyContent.DummyItem;
@@ -27,14 +32,23 @@ public class GroupListFragment extends Fragment {
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
 
+    MyItemRecyclerViewAdapter myItemRecyclerViewAdapter;
+
+    private static final String TAG = "SignInActivity";
 
     public interface MyFragInterface {
 
-        public void showGroupList();
+
         public void hideGroupList();
+        public void showGroupList();
 
     }
 
+    public interface UpdateGroupListInterface {
+
+        public void updateGroupList();
+
+    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -96,10 +110,17 @@ public class GroupListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new MyItemRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            myItemRecyclerViewAdapter = new MyItemRecyclerViewAdapter(new ArrayList<Group>(), mListener);
+            recyclerView.setAdapter(myItemRecyclerViewAdapter);
+
         }
 
         return view;
+    }
+
+    public void updateGroupList(User user)
+    {
+        myItemRecyclerViewAdapter.swap(user.getGroups());
     }
 
 
@@ -132,6 +153,6 @@ public class GroupListFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(Group item);
     }
 }

@@ -7,21 +7,21 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="joroze.com.roomifer.MainActivity"
     android:background="@color/MainMenuBackgroundColor"
-    tools:showIn="@layout/app_bar_main">
+    tools:showIn="@layout/app_bar_main"
+    android:orientation="horizontal">
 
+
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/grouplistfragment"
+        android:name="joroze.com.roomifer.GroupListFragment"
+        tools:layout="@layout/fragment_item_list" />
 
     <RelativeLayout
         android:id="@+id/mainSnackBarView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <fragment
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/grouplistfragment"
-            android:name="joroze.com.roomifer.GroupListFragment"
-
-            tools:layout="@layout/fragment_item_list" />
 
 
         <ImageView

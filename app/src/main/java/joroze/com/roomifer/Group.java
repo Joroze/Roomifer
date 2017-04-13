@@ -17,6 +17,8 @@ public class Group {
     private String id;
 
     private String author;
+    private String authorProfilePictureUrl;
+
     private String groupName;
 
     private Map<String, Boolean> members = new HashMap<>();
@@ -33,10 +35,10 @@ public class Group {
         this.userNames = new ArrayList<String>(Arrays.asList(userNames));
         memberCount = this.userNames.size();
 
-        writeNewGroup(this);
+        fbWriteNewGroup(this);
 
         for (String aUserName : userNames){
-            writeNewUser(new User(user.g_uid, aUserName, user.email, groupName));
+            fbWriteNewUser(new User(user.g_uid, aUserName, user.email, groupName));
         }
 
     }
@@ -46,6 +48,7 @@ public class Group {
         this.id = id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
+        this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.members.put(user.getFb_uid(), true);
         this.memberCount = this.members.size();
 
@@ -105,4 +108,7 @@ public class Group {
         this.memberCount = memberCount;
     }
 
+    public String getAuthorProfilePictureUrl() {
+        return authorProfilePictureUrl;
+    }
 }

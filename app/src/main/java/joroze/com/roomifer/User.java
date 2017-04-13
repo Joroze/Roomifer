@@ -28,8 +28,8 @@ public class User {
     @Exclude
     private String fb_uid;
 
-    @Exclude
-    private Uri profilePictureUri;
+
+    private String profilePictureUrl;
 
     private String displayName;
     private String email;
@@ -42,26 +42,21 @@ public class User {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String fb_uid, String displayName, String email) {
+
+    public User(String fb_uid, String displayName, String email, String profilePictureUrl) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.displayName = displayName;
         this.email = email;
+        this.profilePictureUrl = profilePictureUrl;
     }
 
-    public User(String fb_uid, String displayName, String email, Uri profilePicture) {
+    public User(String fb_uid, String displayName, String email, String profilePictureUrl, ArrayList<Group> groups) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.displayName = displayName;
         this.email = email;
-        this.profilePictureUri = profilePicture;
-    }
-
-    public User(String fb_uid, String displayName, String email, ArrayList<Group> groups) {
-        //this.fbUserKey = fbUserKey;
-        this.fb_uid = fb_uid;
-        this.displayName = displayName;
-        this.email = email;
+        this.profilePictureUrl = profilePictureUrl;
         this.groups = groups;
         this.groupCount = this.groups.size();
     }
@@ -80,6 +75,7 @@ public class User {
         result.put("fb_uid", fb_uid);
         result.put("displayName", displayName);
         result.put("email", email);
+        result.put("profilePictureUrl", profilePictureUrl);
         result.put("groupCount", groupCount);
         result.put("groups", groups);
 
@@ -136,11 +132,11 @@ public class User {
         this.groupCount = groupCount;
     }
 
-    public Uri getProfilePictureUri() {
-        return profilePictureUri;
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
     }
 
-    public void setProfilePictureUri(Uri profilePictureUri) {
-        this.profilePictureUri = profilePictureUri;
+    public void setProfilePictureUrl(String profilePictureUri) {
+        this.profilePictureUrl = profilePictureUri;
     }
 }

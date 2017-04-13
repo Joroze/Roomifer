@@ -35,20 +35,26 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import joroze.com.roomifer.dummy.DummyContent;
+import java.util.HashMap;
+import java.util.Map;
 
-import static joroze.com.roomifer.FirebaseManageJSON.deleteAccount;
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewUser;
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
-        implements GroupListFragment.OnListFragmentInteractionListener, GroupListFragment.MyFragInterface,NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
+        implements GroupListFragment.OnListFragmentInteractionListener, GroupListFragment.UpdateGroupListInterface, GroupListFragment.MyFragInterface, NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
 
     private static final String TAG = "SignInActivity";
 
-    FirebaseManageJSON fbmjson = new FirebaseManageJSON(this);
+    private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
+
+    public static final int GROUP_COUNT_MAX_LIMIT = 3;
 
 
     private GroupListFragment.OnListFragmentInteractionListener mListener;
@@ -58,11 +64,6 @@ public class MainActivity extends AppCompatActivity
     FirebaseUser mCurrentUser;
 
     GoogleApiClient mGoogleApiClient;
-
-
-    //TextView userNameView;
-    //TextView emailView;
-    //ImageView profileImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,8 +103,8 @@ public class MainActivity extends AppCompatActivity
                     // Currently signed in
                     mCurrentUser = user;
 
-                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), mCurrentUser.getPhotoUrl());
-                    writeNewUser(clientUser);
+                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), mCurrentUser.getPhotoUrl().toString());
+                    fbWriteNewUser(clientUser);
 
                     updateUserProfile();
 
@@ -237,38 +238,33 @@ public class MainActivity extends AppCompatActivity
             emailView.setText(mCurrentUser.getEmail());
 
         if (mCurrentUser.getPhotoUrl().toString() != null)
-            Glide.with(this).load(mCurrentUser.getPhotoUrl().toString()).into(profileImageView);
+            Glide.with(this).load(mCurrentUser.getPhotoUrl()).into(profileImageView);
 
         showSnackbar(1);
 
     }
 
-    public void showSnackbar(int resultCode)
-    {
+    public void showSnackbar(int resultCode) {
         Snackbar snackbar;
         String snackbarMsg = "";
 
-        if (resultCode > 0)
-        {
-
-            switch (resultCode)
-            {
+        if (resultCode > 0) {
+            switch (resultCode) {
                 case 1:
                     snackbarMsg = "Signed in as " + mCurrentUser.getDisplayName();
+                    break;
+                case 2:
+                    snackbarMsg = "Successfully created your group!";
                     break;
                 default:
                     snackbarMsg = "An unknown error has occurred!";
                     break;
             }
-        }
-        else if (resultCode < 0)
-        {
-            switch (resultCode)
-            {
-                //case -1:
-                    // Not sure what to use for -1 yet... Maybe a Sign-In error to be displayed.
-                //    break;
-
+        } else if (resultCode < 0) {
+            switch (resultCode) {
+                case -2:
+                    snackbarMsg = "You've reached the max group limit! (" + GROUP_COUNT_MAX_LIMIT + ")";
+                    break;
                 default:
                     snackbarMsg = "An unknown error has occurred!";
                     break;
@@ -310,7 +306,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onResult(Status status) {
 
-                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        FirebaseUser user = mAuth.getCurrentUser();
 
                         user.delete()
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -322,7 +318,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 });
 
-                        deleteAccount(clientUser);
+                        fbDeleteAccount(clientUser);
 
                         if (status.isSuccess())
                             Log.d(TAG, "Google Sign-In Revoke successful!");
@@ -371,7 +367,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
         EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createGroupTextEntry);
-        writeNewGroup(mEdit.getText().toString(), clientUser);
+        fbWriteNewGroup(mEdit.getText().toString(), clientUser);
         showGroupList();
     }
 
@@ -381,11 +377,22 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    // This function listens to click events of items in the fragment, EXCLUDING the delete button.
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+    public void onListFragmentInteraction(Group item) {
+
+        Log.d(TAG, "TESTING FRAGMENT INTERACTION... " + item.getGroupName());
+
+    }
 
 
+    @Override
+    public void updateGroupList() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        //find the fragment by View or Tag
+        GroupListFragment mGroupListFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
 
+        mGroupListFrag.updateGroupList(clientUser);
     }
 
     @Override
@@ -394,10 +401,9 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         //find the fragment by View or Tag
-        GroupListFragment myFrag = (GroupListFragment)fragmentManager.findFragmentById(R.id.grouplistfragment);
+        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
         fragmentTransaction.show(myFrag);
         fragmentTransaction.commit();
-        //do more if you must
     }
 
     @Override
@@ -406,9 +412,169 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         //find the fragment by View or Tag
-        GroupListFragment myFrag = (GroupListFragment)fragmentManager.findFragmentById(R.id.grouplistfragment);
+        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
         fragmentTransaction.hide(myFrag);
         fragmentTransaction.commit();
-        //do more if you must
     }
+
+
+    // TODO: If groups that belong to a user exist, but the user has not been created on the database yet, assign those groups to the user on creation
+    public void fbWriteNewUser(final User user) {
+
+        if (user.getFb_uid() == null) {
+            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
+        }
+
+        DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(user.getFb_uid());
+
+
+        ValueEventListener userListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                //User checkUser = dataSnapshot.getValue(User.class);
+
+                if (dataSnapshot.exists()) {
+                    // if this user exists, create a user with existing information from Firebase database
+                    Log.d(TAG, dataSnapshot.toString());
+                    User savedUser = dataSnapshot.getValue(User.class);
+                    clientUser = new User(savedUser.getFb_uid(), savedUser.getDisplayName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getGroups());
+                } else {
+                    // otherwise, create a new user with default information
+                    Log.d(TAG, "New user detected... Creating new user");
+                    clientUser = new User(user.getFb_uid(), user.getDisplayName(), user.getEmail(), user.getProfilePictureUrl());
+                }
+
+                if (clientUser.getGroupCount() > 0)
+                {
+                    showGroupList();
+
+                }
+
+                updateGroupList();
+
+                Map<String, Object> userValues = clientUser.toMap();
+
+                Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+
+                // update any information to the database
+                mDatabase.updateChildren(childUpdates);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+
+        mUserReference.addListenerForSingleValueEvent(userListener);
+
+        mUserReference.removeEventListener(userListener);
+
+    }
+
+
+    public void fbWriteNewGroup(final String groupName, final User user) {
+
+        if (user.getFb_uid() == null) {
+            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
+        }
+
+        DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(user.getFb_uid());
+
+
+        ValueEventListener groupListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+
+                if (dataSnapshot.exists()) {
+
+                    // if this user exists, create a user with existing information from Firebase database
+                    int checkGroupCount = dataSnapshot.getValue(User.class).getGroupCount();
+
+                    // If user attempts to create more groups than 3, don't proceed
+                    if (checkGroupCount < 0 || checkGroupCount > GROUP_COUNT_MAX_LIMIT - 1) {
+                        Log.d(TAG, "User has reached the max amount of groups to be in: " + GROUP_COUNT_MAX_LIMIT);
+                        // On Failure
+                        showSnackbar(-2);
+                        return;
+                    }
+                } else {
+                    // otherwise, create a new user with default information
+                    //fbWriteNewUser(user);
+                }
+
+                String groupKey = mDatabase.child("groups").push().getKey();
+
+                Group group = new Group(groupKey, groupName, user);
+
+                updateGroupList();
+
+                Map<String, Object> groupValues = group.toMap();
+                Map<String, Object> userValues = user.toMap();
+
+                Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/groups/" + groupKey, groupValues);
+                childUpdates.put("/users/" + user.getFb_uid(), userValues);
+
+
+                mDatabase.updateChildren(childUpdates);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+
+        mGroupReference.addListenerForSingleValueEvent(groupListener);
+        mGroupReference.removeEventListener(groupListener);
+
+
+        // On Success
+        showSnackbar(2);
+    }
+
+    public void fbDeleteGroup(final String groupName, final User user) {
+
+
+
+    }
+
+    public static void fbDeleteAccount(User user) {
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        for (Group group : user.getGroups()) {
+
+            if (user.getDisplayName().equals(group.getAuthor())) {
+                childUpdates.put("/groups/" + group.getId(), null);
+
+                //TODO Find a way to remove each user from the group that was deleted...
+            }
+        }
+
+        childUpdates.put("/users/" + user.getFb_uid(), null);
+
+        /*Group group = new Group(groupId, groupName, user);
+
+        Map<String, Object> groupValues = group.toMap();
+        Map<String, Object> userValues = user.toMap();
+
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/groups/" + groupId, groupValues);
+        childUpdates.put("/users/" + user.g_uid, userValues);
+        */
+
+        mDatabase.updateChildren(childUpdates);
+    }
+
 }

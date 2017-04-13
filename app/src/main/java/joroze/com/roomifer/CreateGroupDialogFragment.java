@@ -11,9 +11,6 @@ import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 
-import static joroze.com.roomifer.FirebaseManageJSON.writeNewGroup;
-import static joroze.com.roomifer.User.clientUser;
-
 /**
  * Created by jorda on 4/10/2017.
  */
