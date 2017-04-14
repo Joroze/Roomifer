@@ -36,8 +36,6 @@ public class User {
 
     private ArrayList<Group> groups = new ArrayList<Group>();
 
-    private int groupCount = 0;
-
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
@@ -58,14 +56,12 @@ public class User {
         this.email = email;
         this.profilePictureUrl = profilePictureUrl;
         this.groups = groups;
-        this.groupCount = this.groups.size();
     }
 
     @Exclude
     public void addToGroup(Group group)
     {
         groups.add(group);
-        groupCount = groups.size();
     }
 
     @Exclude
@@ -76,7 +72,6 @@ public class User {
         result.put("displayName", displayName);
         result.put("email", email);
         result.put("profilePictureUrl", profilePictureUrl);
-        result.put("groupCount", groupCount);
         result.put("groups", groups);
 
         return result;
@@ -122,14 +117,6 @@ public class User {
 
     public void setGroups(ArrayList<Group> groups) {
         this.groups = groups;
-    }
-
-    public int getGroupCount() {
-        return groupCount;
-    }
-
-    public void setGroupCount(int groupCount) {
-        this.groupCount = groupCount;
     }
 
     public String getProfilePictureUrl() {

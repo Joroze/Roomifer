@@ -25,7 +25,6 @@ public class CreateGroupDialogFragment extends DialogFragment {
  * Each method passes the DialogFragment in case the host needs to query it. */
     public interface CreateGroupDialogListener {
         public void onDialogPositiveClick(DialogFragment dialog);
-
         public void onDialogNegativeClick(DialogFragment dialog);
     }
 
@@ -43,8 +42,6 @@ public class CreateGroupDialogFragment extends DialogFragment {
                     + " must implement CreateGroupDialogFragment.CreateGroupDialogListener");
         }
     }
-
-
 
 
     @Override
@@ -69,7 +66,7 @@ public class CreateGroupDialogFragment extends DialogFragment {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
 
-                //mListener.onDialogNegativeClick(CreateGroupDialogFragment.this);
+                mListener.onDialogNegativeClick(CreateGroupDialogFragment.this);
 
                 CreateGroupDialogFragment.this.getDialog().cancel();
             }
@@ -78,6 +75,7 @@ public class CreateGroupDialogFragment extends DialogFragment {
         // Create the AlertDialog object and return it
         return builder.create();
     }
+
 
     @Override
     public void onDetach() {

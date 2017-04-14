@@ -32,7 +32,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,13 +40,20 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
-        implements GroupListFragment.OnListFragmentInteractionListener, GroupListFragment.UpdateGroupListInterface, GroupListFragment.MyFragInterface, NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CreateGroupDialogFragment.CreateGroupDialogListener {
+        implements GroupListFragment.OnGroupListItemFragmentInteractionListener,
+        GroupListFragment.UpdateGroupListInterface,
+        CreateGroupDialogFragment.CreateGroupDialogListener,
+        GroupListFragment.MyFragInterface,
+        NavigationView.OnNavigationItemSelectedListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener{
 
     private static final String TAG = "SignInActivity";
 
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity
     public static final int GROUP_COUNT_MAX_LIMIT = 3;
 
 
-    private GroupListFragment.OnListFragmentInteractionListener mListener;
+    private GroupListFragment.OnGroupListItemFragmentInteractionListener mListener;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -311,7 +317,7 @@ public class MainActivity extends AppCompatActivity
                         user.delete()
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
+                                    public void onComplete(@NonNull com.google.android.gms.tasks.Task task) {
                                         if (task.isSuccessful()) {
                                             Log.d(TAG, "User account deleted.");
                                         }
@@ -333,8 +339,11 @@ public class MainActivity extends AppCompatActivity
 
     protected void onStart() {
         super.onStart();
-
+        
         mAuth.addAuthStateListener(mAuthListener);
+
+        if (mCurrentUser != null)
+            showSnackbar(1);
     }
 
     protected void onStop() {
@@ -353,14 +362,13 @@ public class MainActivity extends AppCompatActivity
 
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
-            if (mCurrentUser != null)
-                showSnackbar(1);
+
         }
     }
 
     public void showCreateGroupDialog() {
         // Create an instance of the dialog fragment and show it
-        DialogFragment dialog = new CreateGroupDialogFragment();
+        CreateGroupDialogFragment dialog = new CreateGroupDialogFragment();
         dialog.show(getSupportFragmentManager(), "CreateGroupDialogFragment");
     }
 
@@ -374,47 +382,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
 
-    }
-
-
-    // This function listens to click events of items in the fragment, EXCLUDING the delete button.
-    @Override
-    public void onListFragmentInteraction(Group item) {
-
-        Log.d(TAG, "TESTING FRAGMENT INTERACTION... " + item.getGroupName());
-
-    }
-
-
-    @Override
-    public void updateGroupList() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        //find the fragment by View or Tag
-        GroupListFragment mGroupListFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
-
-        mGroupListFrag.updateGroupList(clientUser);
-    }
-
-    @Override
-    public void showGroupList() {
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        //find the fragment by View or Tag
-        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
-        fragmentTransaction.show(myFrag);
-        fragmentTransaction.commit();
-    }
-
-    @Override
-    public void hideGroupList() {
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        //find the fragment by View or Tag
-        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
-        fragmentTransaction.hide(myFrag);
-        fragmentTransaction.commit();
     }
 
 
@@ -446,8 +413,7 @@ public class MainActivity extends AppCompatActivity
                     clientUser = new User(user.getFb_uid(), user.getDisplayName(), user.getEmail(), user.getProfilePictureUrl());
                 }
 
-                if (clientUser.getGroupCount() > 0)
-                {
+                if (clientUser.getGroups().size() > 0) {
                     showGroupList();
 
                 }
@@ -497,7 +463,7 @@ public class MainActivity extends AppCompatActivity
                 if (dataSnapshot.exists()) {
 
                     // if this user exists, create a user with existing information from Firebase database
-                    int checkGroupCount = dataSnapshot.getValue(User.class).getGroupCount();
+                    int checkGroupCount = dataSnapshot.getValue(User.class).getGroups().size();
 
                     // If user attempts to create more groups than 3, don't proceed
                     if (checkGroupCount < 0 || checkGroupCount > GROUP_COUNT_MAX_LIMIT - 1) {
@@ -547,7 +513,6 @@ public class MainActivity extends AppCompatActivity
     public void fbDeleteGroup(final String groupName, final User user) {
 
 
-
     }
 
     public static void fbDeleteAccount(User user) {
@@ -575,6 +540,58 @@ public class MainActivity extends AppCompatActivity
         */
 
         mDatabase.updateChildren(childUpdates);
+    }
+
+    @Override
+    public void onGroupListFragmentInteraction(Group group) {
+        Log.d(TAG, "TESTING FRAGMENT INTERACTION... " + group.getGroupName());
+
+
+        ArrayList<Task> tmpTasks = new ArrayList<>();
+        tmpTasks.add(0, new Task("Title", "Desc", "Auth"));
+
+        Intent nextActivity = new Intent(this, GroupTasksActivity.class);
+        nextActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(nextActivity);
+
+    }
+
+    @Override
+    public void updateGroupList() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        //find the fragment by View or Tag
+        GroupListFragment mGroupListFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
+        mGroupListFrag.updateGroupList(clientUser);
+
+    }
+
+
+    @Override
+    public void showGroupList() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        //find the fragment by View or Tag
+        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
+
+        if (!myFrag.isVisible()) {
+
+            Log.d(TAG, "Fragment is not visible! Showing it now!");
+            fragmentTransaction.show(myFrag);
+            fragmentTransaction.commit();
+        }
+
+    }
+
+    @Override
+    public void hideGroupList() {
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        //find the fragment by View or Tag
+        GroupListFragment myFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
+        fragmentTransaction.hide(myFrag);
+        fragmentTransaction.commit();
     }
 
 }

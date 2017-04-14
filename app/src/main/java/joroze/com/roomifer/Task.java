@@ -4,7 +4,7 @@ package joroze.com.roomifer;
  * Created by roseje57 on 4/10/2017.
  */
 
-public class Tasks {
+public class Task {
 
     private String title = "";
     private String description = "";
@@ -15,14 +15,14 @@ public class Tasks {
     // We need to use Google API Calendar here most likely...
     // ...Why? ...For when a task is due by!
 
-    public Tasks(String title, String description, String author)
+    public Task(String title, String description, String author)
     {
         this.title = title;
         this.description = description;
         this.author = author;
     }
 
-    public Tasks(String title, String description, String author, String assignedTo)
+    public Task(String title, String description, String author, String assignedTo)
     {
         this.title = title;
         this.description = description;

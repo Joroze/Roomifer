@@ -11,12 +11,14 @@
     android:orientation="horizontal">
 
 
+
     <fragment
+        android:id="@+id/grouplistfragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/grouplistfragment"
         android:name="joroze.com.roomifer.GroupListFragment"
         tools:layout="@layout/fragment_item_list" />
+
 
     <RelativeLayout
         android:id="@+id/mainSnackBarView"

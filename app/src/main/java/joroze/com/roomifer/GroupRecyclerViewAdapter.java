@@ -1,6 +1,5 @@
 package joroze.com.roomifer;
 
-import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,22 +9,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import joroze.com.roomifer.GroupListFragment.OnListFragmentInteractionListener;
-import joroze.com.roomifer.dummy.DummyContent.DummyItem;
+import joroze.com.roomifer.GroupListFragment.OnGroupListItemFragmentInteractionListener;
 
 import java.util.List;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * specified {@link OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
- */
-public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder> {
+public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecyclerViewAdapter.ViewHolder> {
 
     private final List<Group> mValues;
-    private final OnListFragmentInteractionListener mListener;
+    private final OnGroupListItemFragmentInteractionListener mListener;
 
-    public MyItemRecyclerViewAdapter(List<Group> items, OnListFragmentInteractionListener listener) {
+    public GroupRecyclerViewAdapter(List<Group> items, OnGroupListItemFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -52,7 +45,7 @@ public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecycl
         //holder.iv_cardAuthorProfileImg.setImage(mValues.get(position).getAuthor());
 
         Glide.with(holder.iv_cardAuthorProfileImg.getContext()).load(mValues.get(position).getAuthorProfilePictureUrl()).into(holder.iv_cardAuthorProfileImg);
-        holder.tv_groupMemberCount.setText("Members: " + Integer.toString(mValues.get(position).getMemberCount()));
+        holder.tv_groupMemberCount.setText("Members: " + Integer.toString(mValues.get(position).getMembers().size()));
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,7 +53,7 @@ public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecycl
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(holder.mItem);
+                    mListener.onGroupListFragmentInteraction(holder.mItem);
                 }
             }
         });

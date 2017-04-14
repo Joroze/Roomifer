@@ -6,22 +6,16 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.Glide;
-
 import java.util.ArrayList;
-
-import joroze.com.roomifer.dummy.DummyContent;
-import joroze.com.roomifer.dummy.DummyContent.DummyItem;
 
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnGroupListItemFragmentInteractionListener}
  * interface.
  */
 public class GroupListFragment extends Fragment {
@@ -30,9 +24,9 @@ public class GroupListFragment extends Fragment {
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
+    private OnGroupListItemFragmentInteractionListener mListener;
 
-    MyItemRecyclerViewAdapter myItemRecyclerViewAdapter;
+    GroupRecyclerViewAdapter groupRecyclerViewAdapter;
 
     private static final String TAG = "SignInActivity";
 
@@ -47,7 +41,6 @@ public class GroupListFragment extends Fragment {
     public interface UpdateGroupListInterface {
 
         public void updateGroupList();
-
     }
 
     /**
@@ -110,8 +103,8 @@ public class GroupListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            myItemRecyclerViewAdapter = new MyItemRecyclerViewAdapter(new ArrayList<Group>(), mListener);
-            recyclerView.setAdapter(myItemRecyclerViewAdapter);
+            groupRecyclerViewAdapter = new GroupRecyclerViewAdapter(new ArrayList<Group>(), mListener);
+            recyclerView.setAdapter(groupRecyclerViewAdapter);
 
         }
 
@@ -120,18 +113,18 @@ public class GroupListFragment extends Fragment {
 
     public void updateGroupList(User user)
     {
-        myItemRecyclerViewAdapter.swap(user.getGroups());
+        groupRecyclerViewAdapter.swap(user.getGroups());
     }
 
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
+        if (context instanceof OnGroupListItemFragmentInteractionListener) {
+            mListener = (OnGroupListItemFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
+                    + " must implement OnGroupListItemFragmentInteractionListener");
         }
     }
 
@@ -151,8 +144,8 @@ public class GroupListFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnListFragmentInteractionListener {
+    public interface OnGroupListItemFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(Group item);
+        void onGroupListFragmentInteraction(Group item);
     }
 }

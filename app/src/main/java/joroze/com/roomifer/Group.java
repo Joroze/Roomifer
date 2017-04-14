@@ -3,6 +3,7 @@ package joroze.com.roomifer;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,36 +22,33 @@ public class Group {
 
     private String groupName;
 
+    private ArrayList<Task> tasks = new ArrayList<Task>();
+
     private Map<String, Boolean> members = new HashMap<>();
-    private int memberCount = 0;
 
     public Group() {
 
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    // Each group object will contain a name of the group, and the name of all of the members in it
-    /*public Group(String groupName, String... userNames) {
-        this.groupName = groupName;
-        this.userNames = new ArrayList<String>(Arrays.asList(userNames));
-        memberCount = this.userNames.size();
 
-        fbWriteNewGroup(this);
-
-        for (String aUserName : userNames){
-            fbWriteNewUser(new User(user.g_uid, aUserName, user.email, groupName));
-        }
-
-    }
-
-    */
     public Group(String id, String groupName, User user) {
         this.id = id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
         this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.members.put(user.getFb_uid(), true);
-        this.memberCount = this.members.size();
+
+        user.addToGroup(this);
+    }
+
+    public Group(String id, String groupName, User user, ArrayList<Task> tasks) {
+        this.id = id;
+        this.groupName = groupName;
+        this.author = user.getDisplayName();
+        this.authorProfilePictureUrl = user.getProfilePictureUrl();
+        this.tasks = tasks;
+        this.members.put(user.getFb_uid(), true);
 
         user.addToGroup(this);
     }
@@ -61,7 +59,6 @@ public class Group {
         HashMap<String, Object> result = new HashMap<>();
         result.put("author", author);
         result.put("groupName", groupName);
-        result.put("memberCount", memberCount);
         result.put("members", members);
 
         return result;
@@ -100,15 +97,11 @@ public class Group {
         this.members = members;
     }
 
-    public int getMemberCount() {
-        return memberCount;
-    }
-
-    public void setMemberCount(int memberCount) {
-        this.memberCount = memberCount;
-    }
-
     public String getAuthorProfilePictureUrl() {
         return authorProfilePictureUrl;
+    }
+
+    public ArrayList<Task> getTasks() {
+        return tasks;
     }
 }

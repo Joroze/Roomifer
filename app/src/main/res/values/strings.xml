@@ -19,4 +19,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_menu">Recommend Roomifer to a friend</string>
+    <string name="title_activity_group_tasks">GroupTasksActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>
