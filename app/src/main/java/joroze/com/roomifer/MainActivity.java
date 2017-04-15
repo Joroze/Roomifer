@@ -47,11 +47,12 @@ import java.util.Map;
 import static joroze.com.roomifer.User.clientUser;
 
 public class MainActivity extends AppCompatActivity
-        implements GroupListFragment.OnGroupListItemFragmentInteractionListener,
-        GroupListFragment.UpdateGroupListInterface,
-        CreateGroupDialogFragment.CreateGroupDialogListener,
-        GroupListFragment.MyFragInterface,
+        implements
         NavigationView.OnNavigationItemSelectedListener,
+        CreateGroupDialogFragment.CreateGroupDialogListener,
+        GroupListFragment.OnGroupListItemFragmentInteractionListener,
+        GroupListFragment.UpdateGroupListInterface,
+        GroupListFragment.MyFragInterface,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener{
 
@@ -170,6 +171,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        // TODO: When I can generate profile URL's to share, shorten it first using the Google-Shorten-Url API
         String message = "Roomifer is awesome!";
         Intent share = new Intent(Intent.ACTION_SEND);
         share.setType("text/plain");
@@ -237,7 +239,7 @@ public class MainActivity extends AppCompatActivity
         TextView emailView = (TextView) hView.findViewById(R.id.emailView);
         ImageView profileImageView = (ImageView) hView.findViewById(R.id.profileImageView);
 
-        if (clientUser.getDisplayName() != null)
+        if (mCurrentUser.getDisplayName() != null)
             userNameView.setText(mCurrentUser.getDisplayName());
 
         if (mCurrentUser.getEmail() != null)
@@ -245,8 +247,6 @@ public class MainActivity extends AppCompatActivity
 
         if (mCurrentUser.getPhotoUrl().toString() != null)
             Glide.with(this).load(mCurrentUser.getPhotoUrl()).into(profileImageView);
-
-        showSnackbar(1);
 
     }
 
@@ -342,8 +342,6 @@ public class MainActivity extends AppCompatActivity
         
         mAuth.addAuthStateListener(mAuthListener);
 
-        if (mCurrentUser != null)
-            showSnackbar(1);
     }
 
     protected void onStop() {
@@ -362,8 +360,10 @@ public class MainActivity extends AppCompatActivity
 
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
-
         }
+
+        if (mCurrentUser != null)
+            showSnackbar(1);
     }
 
     public void showCreateGroupDialog() {
@@ -510,7 +510,24 @@ public class MainActivity extends AppCompatActivity
         showSnackbar(2);
     }
 
-    public void fbDeleteGroup(final String groupName, final User user) {
+
+    public static void fbUpdateUserAndGroup()
+    {
+
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        for (Group group: clientUser.getGroups()) {
+
+            Map<String, Object> groupValues = group.toMap();
+            childUpdates.put("/groups/" + group.getId(), groupValues);
+
+        }
+
+        Map<String, Object> userValues = clientUser.toMap();
+        childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+
+        mDatabase.updateChildren(childUpdates);
+
 
 
     }
@@ -551,7 +568,7 @@ public class MainActivity extends AppCompatActivity
         tmpTasks.add(0, new Task("Title", "Desc", "Auth"));
 
         Intent nextActivity = new Intent(this, GroupTasksActivity.class);
-        nextActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        nextActivity.putExtra("groupname", group.getGroupName());
         startActivity(nextActivity);
 
     }
@@ -561,7 +578,7 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         //find the fragment by View or Tag
         GroupListFragment mGroupListFrag = (GroupListFragment) fragmentManager.findFragmentById(R.id.grouplistfragment);
-        mGroupListFrag.updateGroupList(clientUser);
+        mGroupListFrag.updateGroupList();
 
     }
 

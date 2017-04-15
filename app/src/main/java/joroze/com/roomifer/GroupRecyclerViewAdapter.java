@@ -15,20 +15,26 @@ import java.util.List;
 
 public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecyclerViewAdapter.ViewHolder> {
 
-    private final List<Group> mValues;
+    private final List<Group> groups;
     private final OnGroupListItemFragmentInteractionListener mListener;
 
     public GroupRecyclerViewAdapter(List<Group> items, OnGroupListItemFragmentInteractionListener listener) {
-        mValues = items;
+        groups = items;
         mListener = listener;
     }
 
     public void swap(List<Group> items){
-        mValues.clear();
-        mValues.addAll(items);
+        groups.clear();
+        groups.addAll(items);
 
         notifyItemInserted(items.size() - 1);
         notifyDataSetChanged();
+    }
+
+    public void removeGroupItem(int position) {
+        groups.remove(position);
+        notifyItemRemoved(position);
+        // Add whatever you want to do when removing an Item
     }
 
     @Override
@@ -40,12 +46,12 @@ public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecycler
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.tv_cardGroupName.setText(mValues.get(position).getGroupName());
-        //holder.iv_cardAuthorProfileImg.setImage(mValues.get(position).getAuthor());
+        holder.group = groups.get(position);
+        holder.tv_cardGroupName.setText(groups.get(position).getGroupName());
+        //holder.iv_cardAuthorProfileImg.setImage(groups.get(position).getAuthor());
 
-        Glide.with(holder.iv_cardAuthorProfileImg.getContext()).load(mValues.get(position).getAuthorProfilePictureUrl()).into(holder.iv_cardAuthorProfileImg);
-        holder.tv_groupMemberCount.setText("Members: " + Integer.toString(mValues.get(position).getMembers().size()));
+        Glide.with(holder.iv_cardAuthorProfileImg.getContext()).load(groups.get(position).getAuthorProfilePictureUrl()).into(holder.iv_cardAuthorProfileImg);
+        holder.tv_groupMemberCount.setText("Members: " + Integer.toString(groups.get(position).getMembers().size()));
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,7 +59,7 @@ public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecycler
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onGroupListFragmentInteraction(holder.mItem);
+                    mListener.onGroupListFragmentInteraction(holder.group);
                 }
             }
         });
@@ -61,7 +67,7 @@ public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecycler
 
     @Override
     public int getItemCount() {
-        return mValues.size();
+        return groups.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -70,7 +76,7 @@ public class GroupRecyclerViewAdapter extends RecyclerView.Adapter<GroupRecycler
         public final ImageView iv_cardAuthorProfileImg;
         public final TextView tv_groupMemberCount;
 
-        public Group mItem;
+        public Group group;
 
         public ViewHolder(View view) {
             super(view);

@@ -9,7 +9,7 @@
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/ic_menu_share"
-            android:title="Share" />
+            android:title="Share Profile" />
     </group>
 
     <item android:title="Profile">
@@ -18,7 +18,7 @@
             <item
                 android:id="@+id/nav_manage"
                 android:icon="@drawable/ic_menu_manage"
-                android:title="Tools" />
+                android:title="Profile Settings" />
             <item
                 android:id="@+id/nav_signout"
                 android:icon="@drawable/ic_settings_power_black_36px"

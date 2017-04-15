@@ -18,6 +18,8 @@ public class Group {
     private String id;
 
     private String author;
+
+    private String author_id;
     private String authorProfilePictureUrl;
 
     private String groupName;
@@ -36,6 +38,7 @@ public class Group {
         this.id = id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
+        this.author_id = user.getFb_uid();
         this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.members.put(user.getFb_uid(), true);
 
@@ -46,6 +49,7 @@ public class Group {
         this.id = id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
+        this.author_id = user.getFb_uid();
         this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.tasks = tasks;
         this.members.put(user.getFb_uid(), true);
@@ -58,8 +62,11 @@ public class Group {
     {
         HashMap<String, Object> result = new HashMap<>();
         result.put("author", author);
+        result.put("author_id", author_id);
         result.put("groupName", groupName);
         result.put("members", members);
+        result.put("authorProfilePictureUrl", authorProfilePictureUrl);
+        result.put("tasks", tasks);
 
         return result;
     }
@@ -103,5 +110,9 @@ public class Group {
 
     public ArrayList<Task> getTasks() {
         return tasks;
+    }
+
+    public String getAuthor_id() {
+        return author_id;
     }
 }
