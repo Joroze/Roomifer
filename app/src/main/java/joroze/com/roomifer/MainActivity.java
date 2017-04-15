@@ -72,10 +72,20 @@ public class MainActivity extends AppCompatActivity
 
     GoogleApiClient mGoogleApiClient;
 
+
+    boolean firstSignInCheck = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        // TODO: Fix this to work properly. What's needed: Signed-In snackbar when logged in from LoginActivity, and also when resumed, ONLY!
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            firstSignInCheck = getIntent().getBooleanExtra("firstsignin", false);
+        }
 
         // [START configure_signin]
         // Configure sign-in to request the user's ID, email address, and basic
@@ -360,10 +370,10 @@ public class MainActivity extends AppCompatActivity
 
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
+
         }
 
-        if (mCurrentUser != null)
-            showSnackbar(1);
+
     }
 
     public void showCreateGroupDialog() {
@@ -427,6 +437,11 @@ public class MainActivity extends AppCompatActivity
 
                 // update any information to the database
                 mDatabase.updateChildren(childUpdates);
+
+                if (firstSignInCheck == true)
+                {
+                    showSnackbar(1);
+                }
 
             }
 

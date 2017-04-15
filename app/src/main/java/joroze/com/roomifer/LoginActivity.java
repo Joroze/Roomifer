@@ -174,6 +174,7 @@ public class LoginActivity extends AppCompatActivity implements
             firebaseAuthWithGoogle(acct);
 
             Intent nextActivity = new Intent(this, MainActivity.class);
+            nextActivity.putExtra("firstsignin", true);
             startActivity(nextActivity);
 
         } else {
