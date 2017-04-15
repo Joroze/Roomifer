@@ -17,7 +17,6 @@
         android:name="joroze.com.roomifer.GroupListFragment"
         tools:layout="@layout/fragment_item_list" />
 
-
     <RelativeLayout
         android:id="@+id/mainSnackBarView"
         android:layout_width="match_parent"
