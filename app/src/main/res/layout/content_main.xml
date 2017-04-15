@@ -8,9 +8,7 @@
     tools:context="joroze.com.roomifer.MainActivity"
     android:background="@color/MainMenuBackgroundColor"
     tools:showIn="@layout/app_bar_main"
-    android:orientation="horizontal">
-
-
+    android:orientation="vertical">
 
     <fragment
         android:id="@+id/grouplistfragment"
@@ -37,7 +35,7 @@
             android:scaleX="3"
             android:scaleY="3"
             android:contentDescription="All Done!"
-            android:src="@drawable/ic_wb_sunny_white_36px"/>
+            app:srcCompat="@drawable/ic_wb_sunny_white_36px"/>
 
 
         <TextView
