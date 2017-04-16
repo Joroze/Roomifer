@@ -29,7 +29,7 @@ public class User {
     private String displayName;
     private String email;
 
-    private ArrayList<Group> groups = new ArrayList<Group>();
+    private ArrayList<Group> groups = new ArrayList<>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)

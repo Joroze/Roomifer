@@ -145,8 +145,7 @@ public class MainActivity extends AppCompatActivity
                     // Currently signed in
                     mCurrentUser = user;
 
-                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), mCurrentUser.getPhotoUrl().toString());
-                    fbWriteNewUser(clientUser);
+                    initializeClientUser();
 
                     showSnackbar(1);
 
@@ -183,13 +182,11 @@ public class MainActivity extends AppCompatActivity
                     recyclerView.setAdapter(groupRecyclerViewAdapter);
                     itemTouchHelper.attachToRecyclerView(recyclerView);
 
+                    //updateUserProfile();
 
-
-                    updateUserProfile();
 
                 } else {
                     Log.d(TAG, "User is currently signed out");
-                    finish();
                 }
             }
         };
@@ -315,15 +312,15 @@ public class MainActivity extends AppCompatActivity
         TextView emailView = (TextView) hView.findViewById(R.id.emailView);
         ImageView profileImageView = (ImageView) hView.findViewById(R.id.profileImageView);
 
-        if (mCurrentUser.getDisplayName() != null)
-            userNameView.setText(mCurrentUser.getDisplayName());
+        if (clientUser.getDisplayName() != null)
+            userNameView.setText(clientUser.getDisplayName());
 
-        if (mCurrentUser.getEmail() != null)
-            emailView.setText(mCurrentUser.getEmail());
+        if (clientUser.getEmail() != null)
+            emailView.setText(clientUser.getEmail());
 
-        if (mCurrentUser.getPhotoUrl().toString() != null)
-            Glide.with(this).load(mCurrentUser.getPhotoUrl()).into(profileImageView);
-
+        if (clientUser.getProfilePictureUrl() != "") {
+            Glide.with(this).load(clientUser.getProfilePictureUrl()).into(profileImageView);
+        }
     }
 
     public void showSnackbar(int resultCode) {
@@ -451,7 +448,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
         EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createGroupTextEntry);
-        fbWriteNewGroup(mEdit.getText().toString(), clientUser);
+        fbWriteNewGroup(mEdit.getText().toString());
         //showGroupList();
     }
 
@@ -462,15 +459,10 @@ public class MainActivity extends AppCompatActivity
 
 
     // TODO: If groups that belong to a user exist, but the user has not been created on the database yet, assign those groups to the user on creation
-    public void fbWriteNewUser(final User user) {
-
-        if (user.getFb_uid() == null) {
-            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
-        }
+    public void initializeClientUser() {
 
         DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(user.getFb_uid());
-
+                .child("users").child(mCurrentUser.getUid());
 
         ValueEventListener userListener = new ValueEventListener() {
             @Override
@@ -486,15 +478,25 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     // otherwise, create a new user with default information
                     Log.d(TAG, "New user detected... Creating new user");
-                    clientUser = new User(user.getFb_uid(), user.getDisplayName(), user.getEmail(), user.getProfilePictureUrl());
+
+                    String photoUrl;
+
+                    if (mCurrentUser.getPhotoUrl() == null) {
+                        photoUrl = "";
+                    }
+                    else
+                        photoUrl = mCurrentUser.getPhotoUrl().toString();
+
+                    clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), photoUrl);
                 }
+
+                updateUserProfile();
 
                 if (clientUser.getGroups().size() > 0) {
                     //showGroupList();
 
                 }
 
-                //updateGroupList();
 
                 Map<String, Object> userValues = clientUser.toMap();
 
@@ -521,14 +523,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void fbWriteNewGroup(final String groupName, final User user) {
-
-        if (user.getFb_uid() == null) {
-            throw new IllegalArgumentException("ERROR: User must have a g_uid (a Google ID) assigned!");
-        }
+    public void fbWriteNewGroup(final String groupName) {
 
         DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(user.getFb_uid());
+                .child("users").child(clientUser.getFb_uid());
 
 
         ValueEventListener groupListener = new ValueEventListener() {
@@ -536,10 +534,12 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
 
-                if (dataSnapshot.exists()) {
+                // This is here in case someone is deleting user group values from the Firebase Database.
+                // This updates the user values on the app to update changes made when a user wants to create
+                // a new group
+                if (dataSnapshot.child("groups").exists()) {
 
-                    // if this user exists, create a user with existing information from Firebase database
-                    int checkGroupCount = dataSnapshot.getValue(User.class).getGroups().size();
+                    Long checkGroupCount = dataSnapshot.child("groups").getChildrenCount();
 
                     // If user attempts to create more groups than 3, don't proceed
                     if (checkGroupCount < 0 || checkGroupCount > GROUP_COUNT_MAX_LIMIT - 1) {
@@ -548,23 +548,40 @@ public class MainActivity extends AppCompatActivity
                         showSnackbar(-2);
                         return;
                     }
-                } else {
-                    // otherwise, create a new user with default information
-                    //fbWriteNewUser(user);
+
+                    // If the check was passed, we update the user values to the client android app
+                    clientUser.getGroups().clear();
+
+                    for (DataSnapshot postSnapshot : dataSnapshot.child("groups").getChildren()) {
+                        Group group = postSnapshot.getValue(Group.class);
+                        clientUser.getGroups().add(group);
+
+                    }
+
+                }
+
+                else if (!dataSnapshot.child("groups").exists()){
+                    Log.d(TAG, "User DOES NOT EXIST, Logging the user out (back to login screen)");
+
+                    if (!dataSnapshot.exists()) {
+                        signOut();
+                        return;
+                    }
+
+                    // Update user client groups
+                    clientUser.getGroups().clear();
                 }
 
                 String groupKey = mDatabase.child("groups").push().getKey();
 
-                Group group = new Group(groupKey, groupName, user);
-
-                //updateGroupList();
+                Group group = new Group(groupKey, groupName, clientUser);
 
                 Map<String, Object> groupValues = group.toMap();
-                Map<String, Object> userValues = user.toMap();
+                Map<String, Object> userValues = clientUser.toMap();
 
                 Map<String, Object> childUpdates = new HashMap<>();
                 childUpdates.put("/groups/" + groupKey, groupValues);
-                childUpdates.put("/users/" + user.getFb_uid(), userValues);
+                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
 
 
                 mDatabase.updateChildren(childUpdates);
@@ -617,6 +634,9 @@ public class MainActivity extends AppCompatActivity
                 childUpdates.put("/groups/" + group.getId(), null);
 
                 //TODO Find a way to remove each user from the group that was deleted...
+                // CLOUD FUNCTION
+
+                // TODO If a user
             }
         }
 
