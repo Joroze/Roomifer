@@ -20,11 +20,6 @@ public class User {
     @Exclude
     private static final String TAG = "SignInActivity";
 
-
-    @Exclude
-    protected static User clientUser;
-
-
     @Exclude
     private String fb_uid;
 

@@ -1,4 +1,6 @@
+/*
 package joroze.com.roomifer;
+
 
 import android.content.Context;
 import android.os.Bundle;
@@ -17,7 +19,7 @@ import java.util.ArrayList;
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnGroupTasksListItemFragmentInteractionListener}
  * interface.
- */
+
 public class GroupTasksListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
@@ -26,10 +28,6 @@ public class GroupTasksListFragment extends Fragment {
     private int mColumnCount = 1;
     private OnGroupTasksListItemFragmentInteractionListener mListener;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public GroupTasksListFragment() {
     }
 
@@ -89,18 +87,11 @@ public class GroupTasksListFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+
     public interface OnGroupTasksListItemFragmentInteractionListener {
         // TODO: Update argument type and name
         void OnGroupTasksListItemFragmentInteraction(Task task);
     }
 }
+
+*/

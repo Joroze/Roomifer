@@ -41,8 +41,6 @@ public class Group {
         this.author_id = user.getFb_uid();
         this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.members.put(user.getFb_uid(), true);
-
-        user.addToGroup(this);
     }
 
     public Group(String id, String groupName, User user, ArrayList<Task> tasks) {
@@ -53,8 +51,6 @@ public class Group {
         this.authorProfilePictureUrl = user.getProfilePictureUrl();
         this.tasks = tasks;
         this.members.put(user.getFb_uid(), true);
-
-        user.addToGroup(this);
     }
 
     @Exclude
