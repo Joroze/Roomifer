@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+/**
+ * Use the number of seconds/10 since Jan 1 2016 as the versionCode.
+ * This lets us upload a new build at most every 10 seconds for the
+ * next 680 years.
+ */
+def vcode = (int)(((new Date().getTime()/1000) - 1451606400) / 10)
 
 android {
     compileSdkVersion 25
@@ -8,8 +14,8 @@ android {
         applicationId "joroze.com.roomifer"
         minSdkVersion 17
         targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        versionCode vcode
+        versionName "1.1." + vcode
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

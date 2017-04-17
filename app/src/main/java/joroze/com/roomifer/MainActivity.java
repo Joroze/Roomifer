@@ -1,8 +1,6 @@
 package joroze.com.roomifer;
 
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,11 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -149,7 +143,7 @@ public class MainActivity extends AppCompatActivity
 
                     showSnackbar(1);
 
-                    groupRecyclerViewAdapter = new FirebaseRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.fragment_item, GroupHolder.class, mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")) {
+                    groupRecyclerViewAdapter = new FirebaseRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")) {
                         @Override
                         protected void populateViewHolder(GroupHolder viewHolder, final Group group, int position) {
 
@@ -168,7 +162,7 @@ public class MainActivity extends AppCompatActivity
                                 public void onClick(View view) {
 
                                     Intent nextActivity = new Intent(getApplicationContext(), GroupTasksActivity.class);
-                                    nextActivity.putExtra("groupname", group.getGroupName());
+                                    nextActivity.putExtra("groupid", group.getId());
                                     startActivity(nextActivity);
                                 }
                             });
@@ -192,7 +186,6 @@ public class MainActivity extends AppCompatActivity
         };
 
         //itemTouchHelper.attachToRecyclerView(recyclerView);
-
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -734,7 +727,7 @@ public class MainActivity extends AppCompatActivity
                             snackbarDeleteResultMsg.append("\"");
 
                             // Remove group item from the Recycler List
-                            //groupRecyclerViewAdapter.removeGroupItem(selectedGroupPosition);
+                            //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
                             groupRecyclerViewAdapter.notifyItemRemoved(selectedGroupPosition);
 
                             // Remove group from client user object
