@@ -47,7 +47,7 @@ import java.util.Map;
 
 
 
-public class GroupTasksListFragment extends DialogFragment {
+public class GroupTasksListFragment extends Fragment {
 
     private static final String TAG = "SignInActivity";
 
@@ -62,30 +62,6 @@ public class GroupTasksListFragment extends DialogFragment {
     RecyclerView.Adapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
-
-
-    /* The activity that creates an instance of this dialog fragment must
-* implement this interface in order to receive event callbacks.
-* Each method passes the DialogFragment in case the host needs to query it. */
-    public interface CreateTaskDialogListener {
-        public void onDialogPositiveClick(GroupTasksListFragment dialog);
-        public void onDialogNegativeClick(GroupTasksListFragment dialog);
-    }
-
-    // Use this instance of the interface to deliver action events
-    CreateTaskDialogListener mListener;
-
-    // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof CreateTaskDialogListener) {
-            mListener = (CreateTaskDialogListener) context;
-        } else {
-            throw new ClassCastException(context.toString()
-                    + " must implement CreateTaskDialogFragment.CreateTaskDialogListener");
-        }
-    }
 
 
     public GroupTasksListFragment() {
@@ -218,54 +194,18 @@ public class GroupTasksListFragment extends DialogFragment {
     }
 
 
-    AlertDialog.Builder builder;
 
 
     public void showCreateTaskDialog() {
         //Create an instance of the dialog fragment and show it
-        //CreateTaskDialogFragment dialog = new CreateTaskDialogFragment();
+        CreateTaskDialogFragment dialog = new CreateTaskDialogFragment();
         //dialog.show(view.getContext().getApplicationContext().get)
-        //dialog.show(view.getContext().getSupportFragmentManager(), "CreateTaskDialogFragment");
-
-        builder = new AlertDialog.Builder(getActivity());
-        // Get the layout inflater
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-
-        // Inflate and set the layout for the dialog
-        // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.create_task_dialog_layout, new LinearLayout(getActivity()), false));
-
-        builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-
-                mListener.onDialogPositiveClick(GroupTasksListFragment.this);
-
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-
-                mListener.onDialogNegativeClick(GroupTasksListFragment.this);
-
-                getDialog().cancel();
-            }
-        });
-
-        // Create the AlertDialog object and return it
+        dialog.show(getActivity().getSupportFragmentManager(), "CreateTaskDialogFragment");
 
 
-        builder.create();
-        builder.show();
+
     }
 
-
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        this.mListener = null;
-    }
 
 }
 

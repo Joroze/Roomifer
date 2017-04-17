@@ -51,7 +51,7 @@ public class CreateTaskDialogFragment extends DialogFragment {
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.create_group_dialog_layout, new LinearLayout(getActivity()), false));
+        builder.setView(inflater.inflate(R.layout.create_task_dialog_layout, new LinearLayout(getActivity()), false));
 
         builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
             @Override

@@ -12,7 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-public class GroupTasksActivity extends AppCompatActivity implements GroupTasksListFragment.CreateTaskDialogListener{
+public class GroupTasksActivity extends AppCompatActivity implements CreateTaskDialogFragment.CreateTaskDialogListener {
 
     // TODO: Passing objects/classes through activites:
     // http://stackoverflow.com/questions/2906925/how-do-i-pass-an-object-from-one-activity-to-another-on-android
@@ -108,12 +108,16 @@ public class GroupTasksActivity extends AppCompatActivity implements GroupTasksL
     }
 
     @Override
-    public void onDialogPositiveClick(GroupTasksListFragment dialog) {
+    public void onDialogPositiveClick(DialogFragment dialog) {
+
+
+
+
 
     }
 
     @Override
-    public void onDialogNegativeClick(GroupTasksListFragment dialog) {
+    public void onDialogNegativeClick(DialogFragment dialog) {
 
     }
 }
