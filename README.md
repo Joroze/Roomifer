@@ -7,6 +7,7 @@
 
 ![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
 
+
 # Section Links
 1. [Prerequisites](#prerequisites)
 2. [App Description](#app-description)
