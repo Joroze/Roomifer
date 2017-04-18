@@ -1,32 +1,26 @@
 
 package joroze.com.roomifer;
 
-
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.EditText;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -46,8 +40,7 @@ import java.util.Map;
 */
 
 
-
-public class GroupTasksListFragment extends Fragment {
+public class GroupTasksListFragment extends Fragment implements CreateTaskDialogFragment.CreateTaskDialogListener {
 
     private static final String TAG = "SignInActivity";
 
@@ -57,12 +50,15 @@ public class GroupTasksListFragment extends Fragment {
 
     FirebaseUser mCurrentUser;
     User clientUser;
+    LinearLayoutManager linearLayoutManager;
 
 
     RecyclerView.Adapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
 
+    String group_id;
+    int group_index;
 
     public GroupTasksListFragment() {
     }
@@ -72,24 +68,18 @@ public class GroupTasksListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
 
-
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
-        if (mCurrentUser == null)
-        {
+        if (mCurrentUser == null) {
             Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
             getActivity().finish();
+        } else {
+            initializeClientUser();
         }
 
-        Log.d(TAG, mCurrentUser.getDisplayName() + "GROUPID TEEEEST - USER IS SIGNED IN IN TASKLIST FRAGMENT");
-
-
-
-
-        String group_id = this.getArguments().getString("message");
-
-        Log.d(TAG, group_id + "GROUPID TEEEEST");
+        group_id = this.getArguments().getString("group_id");
+        group_index = this.getArguments().getInt("group_index");
 
 
         mTaskReference = FirebaseDatabase.getInstance().getReference()
@@ -99,13 +89,19 @@ public class GroupTasksListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_group_tasks_list, container, false);
 
 
-        //itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
+        itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
         recyclerView = (RecyclerView) rootView.findViewById(R.id.grouptaskslist);
         recyclerView.setHasFixedSize(false);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-//        itemTouchHelper.attachToRecyclerView(recyclerView);
 
 
+        linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setReverseLayout(false);
+
+        recyclerView.setLayoutManager(linearLayoutManager);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(dividerItemDecoration);
 
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabaddtask);
 
@@ -123,102 +119,67 @@ public class GroupTasksListFragment extends Fragment {
 
 
     @Override
-    public void onStart()
-    {
+    public void onStart() {
         super.onStart();
 
 
-        // Add value event listener to the post
-        // [START post_value_event_listener]
-        ValueEventListener postListener = new ValueEventListener() {
+        tasksRecyclerViewAdapter = new FirebaseRecyclerAdapter<Task, TaskHolder>(Task.class, R.layout.group_tasks_item, TaskHolder.class, mTaskReference) {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
+            protected void populateViewHolder(TaskHolder viewHolder, final Task task, int position) {
 
+                viewHolder.setTaskTitle(task.getTitle());
+                //viewHolder.setTaskAssigneeName();
+                //viewHolder.setTaskAssigneeProfileImg();
 
-                tasksRecyclerViewAdapter = new FirebaseRecyclerAdapter<Task, TaskHolder>(Task.class, R.layout.group_tasks_item, TaskHolder.class, mTaskReference) {
+                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    protected void populateViewHolder(TaskHolder viewHolder, final Task task, int position) {
-
-                        //clientUser.addToGroup(group);
-
-                        viewHolder.setTaskTitle(task.getTitle());
-                        viewHolder.setTaskAssigneeName(task.getAssigneeName());
-                        viewHolder.setTaskAssigneeProfileImg(task.getAssigneeProfilePicUrl());
-
-                        Log.d(TAG, "TASK UPDATE FOUND: " + task.getAuthor_id() + task.getTitle());
-
-
-                        viewHolder.itemView.setOnClickListener(new View.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(View view) {
-
-                            }
-                        });
+                    public void onClick(View view) {
 
                     }
+                });
+
+            };
 
 
+                @Override
+                protected void onDataChanged() {
+                    // If there are no chat messages, show a view that invites the user to add a message.
+                    recyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                }
+            };
 
-                };
-
-
-
-
-
-
-                //Post post = dataSnapshot.getValue(Post.class);
-                // [START_EXCLUDE]
-               // mAuthorView.setText(post.author);
-               // mTitleView.setText(post.title);
-               // mBodyView.setText(post.body);
-                // [END_EXCLUDE]
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // [START_EXCLUDE]
-                Toast.makeText(getActivity(), "Failed to load post.",
-                        Toast.LENGTH_SHORT).show();
-                // [END_EXCLUDE]
-            }
-        };
-        mTaskReference.addValueEventListener(postListener);
-
+            // Scroll to bottom on new messages
+        tasksRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                @Override
+                public void onItemRangeInserted(int positionStart, int itemCount) {
+                    linearLayoutManager.smoothScrollToPosition(recyclerView, null, tasksRecyclerViewAdapter.getItemCount());
+                }
+            });
 
         recyclerView.setAdapter(tasksRecyclerViewAdapter);
 
     }
 
 
-
-
     public void showCreateTaskDialog() {
         //Create an instance of the dialog fragment and show it
         CreateTaskDialogFragment dialog = new CreateTaskDialogFragment();
+        dialog.setTargetFragment(this, 0);
         //dialog.show(view.getContext().getApplicationContext().get)
         dialog.show(getActivity().getSupportFragmentManager(), "CreateTaskDialogFragment");
-
 
 
     }
 
 
-}
+    Task selectedTask;
+    int selectedTaskPosition;
+
+    Map<String, Object> deleteTaskChildUpdates;
+
+    StringBuilder snackbarDeleteResultMsg;
 
 
-    //Task selectedTask;
-    //int selectedTaskPosition;
-
-    //Map<String, Object> deleteTaskChildUpdates;
-
-    //StringBuilder snackbarDeleteResultMsg;
-
-
-    /*
     ItemTouchHelper.SimpleCallback simpleCallbackItemTouchHelper = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
 
         @Override
@@ -235,29 +196,25 @@ public class GroupTasksListFragment extends Fragment {
             StringBuilder dialogMsg;
 
 
+
             selectedTaskPosition = viewHolder.getAdapterPosition();
-            selectedTask = clientUser.getGroups().get(selectedTaskPosition);
+            //clientUser.getGroups().get()
+            selectedTask = clientUser.getGroups().get(group_index).getTasks().get(selectedTaskPosition);
             deleteTaskChildUpdates = new HashMap<>();
 
-            dialogTitle = new StringBuilder("Confirm to Leave");
+            dialogTitle = new StringBuilder("Delete Task");
 
-            dialogMsg = new StringBuilder("Are you sure you want to leave the group: \"");
-            dialogMsg.append(selectedTask.getGroupName());
-            dialogMsg.append("?");
-
-            if (selectedTask.getAuthor_id().equals(clientUser.getFb_uid()))
-            {
-                fullGroupDelete = true;
-                dialogTitle.append(" and Delete");
-                dialogMsg.append("\n\n(Since you\'re the owner, the group will also be deleted)");
-            }
+            dialogMsg = new StringBuilder("Are you sure you want to delete the following task: \"");
+            dialogMsg.append(selectedTask.getTitle());
+            dialogMsg.append("?\n\nDescription: ");
+            dialogMsg.append(selectedTask.getDescription());
 
             snackbarDeleteResultMsg = new StringBuilder("You\'ve");
 
             // ========================================================================
             // Programmatically create an Alert Dialog box "pop-up"
             // DIALOG LOGIC STARTS HERE ===============================================
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
 
             // set title of the alert dialog
             alertDialogBuilder.setTitle(dialogTitle);
@@ -272,40 +229,28 @@ public class GroupTasksListFragment extends Fragment {
                     .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
 
-                            // If clientUser deletes a group that it is the author of, then delete it from database
-                            if (fullGroupDelete)
-                            {
-                                // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
-                                deleteTaskChildUpdates.put("/groups/" + selectedTask.getId(), null);
+                            // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
 
-                                snackbarDeleteResultMsg.append(" deleted the group: \"");
-                            }
+                            // Deletes the target task
+                            deleteTaskChildUpdates.put("/groups/" + group_id + "/tasks/" + selectedTask.getId(), null);
 
-                            // If clientUser deletes a group that it is not the author of, then remove clientUser from group in the database
-                            else {
-                                selectedTask.getMembers().remove(clientUser.getFb_uid());
-                                Map<String, Object> groupValues = selectedTask.toMap();
-                                deleteTaskChildUpdates.put("/groups/" + selectedTask.getId(), groupValues);
-
-                                snackbarDeleteResultMsg.append(" left the group: \"");
-                            }
-
-                            snackbarDeleteResultMsg.append(selectedTask.getGroupName());
+                            snackbarDeleteResultMsg.append(" deleted the task: \"");
+                            snackbarDeleteResultMsg.append(selectedTask.getTitle());
                             snackbarDeleteResultMsg.append("\"");
 
                             // Remove group item from the Recycler List
                             //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
-                            groupRecyclerViewAdapter.notifyItemRemoved(selectedTaskPosition);
+                            tasksRecyclerViewAdapter.notifyItemRemoved(selectedTaskPosition);
 
                             // Remove group from client user object
-                            clientUser.getGroups().remove(selectedTaskPosition);
+                            clientUser.getGroups().get(group_index).getTasks().remove(selectedTaskPosition);
 
                             Map<String, Object> userValues = clientUser.toMap();
                             deleteTaskChildUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
 
                             mDatabase.updateChildren(deleteTaskChildUpdates);
 
-                            Snackbar snackbar = Snackbar.make(findViewById(R.id.mainSnackBarView), snackbarDeleteResultMsg, Snackbar.LENGTH_LONG);
+                            Snackbar snackbar = Snackbar.make(getActivity().findViewById(R.id.GroupContentSnackBarView), snackbarDeleteResultMsg, Snackbar.LENGTH_LONG);
                             snackbar.show();
                         }
                     })
@@ -314,7 +259,7 @@ public class GroupTasksListFragment extends Fragment {
                             // if this button is clicked, close the dialog box
 
                             // also reset the view adapter to put back in place the slided row
-                            groupRecyclerViewAdapter.notifyDataSetChanged();
+                            tasksRecyclerViewAdapter.notifyDataSetChanged();
                             dialog.cancel();
                         }
                     })
@@ -330,5 +275,132 @@ public class GroupTasksListFragment extends Fragment {
         }
     };
 
+
+    public void fbWriteNewTask(final String taskName) {
+
+        DatabaseReference mTaskReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(clientUser.getFb_uid()).child("groups");
+
+        ValueEventListener taskListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+
+
+
+                    // If the check was passed, we update the user values to the client android app
+                clientUser.getGroups().clear();
+
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Group group = postSnapshot.getValue(Group.class);
+                    clientUser.getGroups().add(group);
+                }
+
+
+
+                    //for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    //Group group = postSnapshot.getValue(Group.class);
+                    //  clientUser.getGroups().put(group.getId(),group);
+                    //}
+
+
+
+
+                String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
+
+                Task task = new Task(taskKey, taskName, "DESCRIPTION HERE", clientUser);
+
+
+               clientUser.getGroups().get(group_index).getTasks().add(task);
+
+                //clientUser.getGroups().get(group_id).getTasks().add(task);
+
+                Map<String, Object> taskValues = task.toMap();
+                Map<String, Object> userValues = clientUser.toMap();
+
+                Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/groups/" + group_id + "/tasks/" + taskKey, taskValues);
+                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+
+
+                mDatabase.updateChildren(childUpdates);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+
+        mTaskReference.addListenerForSingleValueEvent(taskListener);
+        mTaskReference.removeEventListener(taskListener);
+
+
+        // On success
+        Snackbar snackbar = Snackbar.make(getActivity().findViewById(R.id.GroupContentSnackBarView), "Task created!", Snackbar.LENGTH_SHORT);
+        snackbar.show();
+    }
+
+
+    public void initializeClientUser() {
+
+        DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(mCurrentUser.getUid());
+
+        ValueEventListener userListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                //User checkUser = dataSnapshot.getValue(User.class);
+
+                if (dataSnapshot.exists()) {
+                    // if this user exists, create a user with existing information from Firebase database
+                    Log.d(TAG, dataSnapshot.toString());
+                    User savedUser = dataSnapshot.getValue(User.class);
+                    clientUser = new User(savedUser.getFb_uid(), savedUser.getDisplayName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getGroups());
+                } else {
+                    // otherwise, create a new user with default information
+                    Log.d(TAG, "User does not exist. Going back to Main activity! ");
+                    getActivity().finish();
+                }
+
+                Map<String, Object> userValues = clientUser.toMap();
+
+                Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+
+                // update any information to the database
+                mDatabase.updateChildren(childUpdates);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+
+        mUserReference.addListenerForSingleValueEvent(userListener);
+
+        mUserReference.removeEventListener(userListener);
+
+    }
+
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+
+        EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createTaskTitleTextEntry);
+        fbWriteNewTask(mEdit.getText().toString());
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+
+    }
 }
-*/
+

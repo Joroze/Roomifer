@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 
@@ -29,18 +30,18 @@ public class CreateTaskDialogFragment extends DialogFragment {
     // Use this instance of the interface to deliver action events
     CreateTaskDialogListener mListener;
 
-    // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
+
+
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof CreateTaskDialogListener) {
-            mListener = (CreateTaskDialogListener) context;
-        } else {
-            throw new ClassCastException(context.toString()
-                    + " must implement CreateTaskDialogFragment.CreateTaskDialogListener");
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        try {
+            mListener = (CreateTaskDialogListener) getTargetFragment();
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Calling Fragment must implement CreateTaskDialogListener interface");
         }
     }
-
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

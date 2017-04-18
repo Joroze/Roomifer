@@ -1,10 +1,18 @@
 package joroze.com.roomifer;
 
+import com.google.firebase.database.Exclude;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by roseje57 on 4/10/2017.
  */
 
 public class Task {
+
+    @Exclude
+    private String id;
 
     private String title = "";
     private String description = "";
@@ -19,16 +27,24 @@ public class Task {
     // We need to use Google API Calendar here most likely...
     // ...Why? ...For when a task is due by!
 
-    public Task(String title, String description, User authorUser)
+    public Task()
     {
+
+    }
+
+
+    public Task(String id, String title, String description, User authorUser)
+    {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.authorName = authorUser.getDisplayName();
         this.author_id = authorUser.getFb_uid();
     }
 
-    public Task(String title, String description, User authorUser, User assigneeUser)
+    public Task(String id, String title, String description, User authorUser, User assigneeUser)
     {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.authorName = authorUser.getDisplayName();
@@ -37,6 +53,21 @@ public class Task {
         this.assignee_id = assigneeUser.getG_uid();
         this.assigneeProfilePicUrl = assigneeUser.getProfilePictureUrl();
 
+    }
+
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+
+        result.put("title", title);
+        result.put("description", description);
+        result.put("authorName", authorName);
+        result.put("author_id", author_id);
+        result.put("assigneeName", assigneeName);
+        result.put("assignee_id", assignee_id);
+        result.put("assigneeProfilePicUrl", assigneeProfilePicUrl);
+
+        return result;
     }
 
     public String getAuthor_id() {
@@ -94,6 +125,14 @@ public class Task {
 
     public void setAssignee_id(String assignee_id) {
         this.assignee_id = assignee_id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
 }

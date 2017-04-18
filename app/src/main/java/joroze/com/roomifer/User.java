@@ -1,6 +1,8 @@
 package joroze.com.roomifer;
 
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.firebase.database.Exclude;
@@ -28,6 +30,8 @@ public class User {
 
     private String displayName;
     private String email;
+
+
 
     private ArrayList<Group> groups = new ArrayList<>();
 
@@ -107,13 +111,6 @@ public class User {
         this.email = email;
     }
 
-    public ArrayList<Group> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(ArrayList<Group> groups) {
-        this.groups = groups;
-    }
 
     public String getProfilePictureUrl() {
         return profilePictureUrl;
@@ -122,4 +119,13 @@ public class User {
     public void setProfilePictureUrl(String profilePictureUri) {
         this.profilePictureUrl = profilePictureUri;
     }
+
+    public ArrayList<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(ArrayList<Group> groups) {
+        this.groups = groups;
+    }
+
 }

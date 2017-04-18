@@ -6,13 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="joroze.com.roomifer.GroupTasksActivity">
+    tools:context="joroze.com.roomifer.GroupContentActivity">
+
+
 
     <FrameLayout
         android:id="@+id/contentframelayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        tools:listitem="@layout/group_tasks_item">
+
 
         <TextView
             android:id="@+id/message"
@@ -23,7 +27,13 @@
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:layout_marginTop="@dimen/activity_vertical_margin" />
 
+        <RelativeLayout
+            android:id="@+id/GroupContentSnackBarView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+    </RelativeLayout>
     </FrameLayout>
+
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"
@@ -32,5 +42,7 @@
         android:layout_gravity="bottom"
         android:background="?android:attr/windowBackground"
         app:menu="@menu/navigation" />
+
+
 
 </LinearLayout>

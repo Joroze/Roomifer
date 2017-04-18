@@ -1,26 +1,49 @@
 package joroze.com.roomifer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
 
-public class GroupTasksActivity extends AppCompatActivity implements CreateTaskDialogFragment.CreateTaskDialogListener {
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class GroupContentActivity extends AppCompatActivity {
 
     // TODO: Passing objects/classes through activites:
     // http://stackoverflow.com/questions/2906925/how-do-i-pass-an-object-from-one-activity-to-another-on-android
+    private static final String TAG = "SignInActivity";
 
 
     private TextView mTextMessage;
 
+
+    private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
+    FirebaseUser mCurrentUser;
+    User clientUser;
+
     private String group_id;
+    private String group_name;
+    private int group_index;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -46,8 +69,10 @@ public class GroupTasksActivity extends AppCompatActivity implements CreateTaskD
                 case R.id.group_navigation_list:
                     //mTextMessage.setText(R.string.group_title_tasks);
 
+                    mTextMessage.setText("");
                     Bundle bundle = new Bundle();
-                    bundle.putString("message", group_id );
+                    bundle.putString("group_id", group_id );
+                    bundle.putInt("group_index", group_index);
                     groupTasksListFragment = new GroupTasksListFragment();
                     groupTasksListFragment.setArguments(bundle);
                     transaction.replace(R.id.contentframelayout, groupTasksListFragment);
@@ -75,15 +100,26 @@ public class GroupTasksActivity extends AppCompatActivity implements CreateTaskD
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_group_tasks);
+        setContentView(R.layout.activity_group_content);
+
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (mCurrentUser == null) {
+            Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
+            finish();
+        }
+
+
+        group_id = getIntent().getStringExtra("group_id");
+        group_name = getIntent().getStringExtra("group_name");
+        group_index = getIntent().getIntExtra("group_index", -1);
 
 
 
-        group_id =  getIntent().getStringExtra("groupid");
 
 
         StringBuilder groupTitle = new StringBuilder("Group: \"");
-        groupTitle.append(group_id);
+        groupTitle.append(group_name);
         groupTitle.append("\"");
 
 
@@ -97,6 +133,18 @@ public class GroupTasksActivity extends AppCompatActivity implements CreateTaskD
 
         navigation.setSelectedItemId(R.id.group_navigation_list);
 
+        Fragment groupTasksListFragment;
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+        Bundle bundle = new Bundle();
+        bundle.putString("group_id", group_id );
+        bundle.putInt("group_index", group_index);
+        groupTasksListFragment = new GroupTasksListFragment();
+        groupTasksListFragment.setArguments(bundle);
+        transaction.replace(R.id.contentframelayout, groupTasksListFragment);
+        transaction.commit();
+
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
@@ -107,17 +155,11 @@ public class GroupTasksActivity extends AppCompatActivity implements CreateTaskD
         super.onRestoreInstanceState(savedInstanceState);
     }
 
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog) {
 
 
 
 
 
-    }
 
-    @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
 
-    }
 }

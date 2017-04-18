@@ -45,6 +45,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
@@ -80,6 +81,9 @@ public class MainActivity extends AppCompatActivity
     RecyclerView.Adapter groupRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
+
+    LinearLayoutManager linearLayoutManager;
+
 
     Group selectedGroup;
     int selectedGroupPosition;
@@ -122,8 +126,11 @@ public class MainActivity extends AppCompatActivity
 
         recyclerView = (RecyclerView)findViewById(R.id.recyclegrouplist);
         recyclerView.setHasFixedSize(false);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setReverseLayout(false);
 
+        recyclerView.setLayoutManager(linearLayoutManager);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -145,7 +152,7 @@ public class MainActivity extends AppCompatActivity
 
                     groupRecyclerViewAdapter = new FirebaseRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")) {
                         @Override
-                        protected void populateViewHolder(GroupHolder viewHolder, final Group group, int position) {
+                        protected void populateViewHolder(GroupHolder viewHolder, final Group group, final int position) {
 
                             //clientUser.addToGroup(group);
 
@@ -153,16 +160,14 @@ public class MainActivity extends AppCompatActivity
                             viewHolder.setGroupMemberCount(group.getMembers().size());
                             viewHolder.setCardAuthorProfileImg(group.getAuthorProfilePictureUrl());
 
-                            Log.d(TAG, "UPDATE FOUND: " + group.getAuthor() + group.getGroupName());
-
-
                             viewHolder.itemView.setOnClickListener(new View.OnClickListener()
                             {
                                 @Override
                                 public void onClick(View view) {
-
-                                    Intent nextActivity = new Intent(getApplicationContext(), GroupTasksActivity.class);
-                                    nextActivity.putExtra("groupid", group.getId());
+                                    Intent nextActivity = new Intent(getApplicationContext(), GroupContentActivity.class);
+                                    nextActivity.putExtra("group_id", group.getId());
+                                    nextActivity.putExtra("group_name", group.getGroupName());
+                                    nextActivity.putExtra("group_index", position);
                                     startActivity(nextActivity);
                                 }
                             });
@@ -170,11 +175,23 @@ public class MainActivity extends AppCompatActivity
                         }
 
 
-
+                        @Override
+                        protected void onDataChanged() {
+                            // If there are no chat messages, show a view that invites the user to add a message.
+                            recyclerView.setVisibility(groupRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                        }
                     };
 
+                    // Scroll to bottom on new messages
+                    groupRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                        @Override
+                        public void onItemRangeInserted(int positionStart, int itemCount) {
+                            linearLayoutManager.smoothScrollToPosition(recyclerView, null, groupRecyclerViewAdapter.getItemCount());
+                        }
+                    });
+
+
                     recyclerView.setAdapter(groupRecyclerViewAdapter);
-                    itemTouchHelper.attachToRecyclerView(recyclerView);
 
                     //updateUserProfile();
 
@@ -405,7 +422,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void onStart() {
         super.onStart();
-        
+
         mAuth.addAuthStateListener(mAuthListener);
 
     }
@@ -598,29 +615,12 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void fbUpdateUserAndGroup()
-    {
 
-        Map<String, Object> childUpdates = new HashMap<>();
-
-        for (Group group: clientUser.getGroups()) {
-
-            Map<String, Object> groupValues = group.toMap();
-            childUpdates.put("/groups/" + group.getId(), groupValues);
-
-        }
-
-        Map<String, Object> userValues = clientUser.toMap();
-        childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
-
-        mDatabase.updateChildren(childUpdates);
-
-
-
-    }
 
     public static void fbDeleteAccount(User user) {
         Map<String, Object> childUpdates = new HashMap<>();
+
+
 
         for (Group group : user.getGroups()) {
 
