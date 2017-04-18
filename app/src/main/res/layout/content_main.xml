@@ -1,11 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="joroze.com.roomifer.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    android:background="@color/MainMenuBackgroundColor"
+    tools:showIn="@layout/app_bar_main"
+    android:orientation="vertical">
 
-</android.support.constraint.ConstraintLayout>
+    <android.support.v7.widget.RecyclerView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/recyclegrouplist"
+        android:name="joroze.com.roomifer.ItemFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:scrollbars="vertical"
+        app:layoutManager="LinearLayoutManager"
+        tools:listitem="@layout/group_list_item" />
+
+    <RelativeLayout
+        android:id="@+id/mainSnackBarView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <ImageView
+            android:id="@+id/nogroups"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:scaleX="3"
+            android:scaleY="3"
+            android:contentDescription="All Done!"
+            app:srcCompat="@drawable/ic_wb_sunny_white_36px"/>
+
+
+        <TextView
+            android:id="@+id/text_header1"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="You aren't in any groups!"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="#ffff"
+            android:layout_above="@id/nogroups"
+            android:layout_marginBottom="40dp"
+            android:textStyle="bold"
+            android:textSize="25sp" />
+
+    </RelativeLayout>
+</LinearLayout>
