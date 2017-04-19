@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@color/MainMenuBackgroundColor"
+    android:orientation="vertical">
+
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabaddtask"
@@ -15,18 +18,45 @@
         android:tint="@android:color/white"
         app:srcCompat="@drawable/ic_add_white_36dp" />
 
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/grouptaskslist"
-    android:name="joroze.com.roomifer.GroupTasksListFragment"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
+    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/grouptaskslist"
+        android:name="joroze.com.roomifer.GroupTasksListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        app:layoutManager="LinearLayoutManager"
+        tools:listitem="@layout/group_tasks_item" />
 
-    app:layoutManager="LinearLayoutManager"
-    tools:listitem="@layout/group_tasks_item" />
+
+    <ImageView
+        android:id="@+id/notasks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:adjustViewBounds="true"
+        android:contentDescription="All Done!"
+        android:scaleType="fitCenter"
+        android:scaleX="3"
+        android:scaleY="3"
+        app:srcCompat="@drawable/ic_wb_sunny_white_36px" />
+
+
+    <TextView
+        android:id="@+id/notaskstextview"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_above="@id/notasks"
+        android:layout_marginBottom="40dp"
+        android:text="Your group has no tasks!"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textColor="#ffff"
+        android:textSize="25sp"
+        android:textStyle="bold" />
 
 
 </RelativeLayout>

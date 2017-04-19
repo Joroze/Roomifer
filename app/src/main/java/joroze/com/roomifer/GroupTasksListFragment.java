@@ -60,6 +60,9 @@ public class GroupTasksListFragment extends Fragment {
     LinearLayoutManager linearLayoutManager;
 
 
+    ImageView noTasksAvailableSunImage;
+    TextView noTasksAvailableInfo;
+
     RecyclerView.Adapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
@@ -130,6 +133,9 @@ public class GroupTasksListFragment extends Fragment {
         super.onStart();
 
 
+        noTasksAvailableSunImage = (ImageView)getActivity().findViewById(R.id.notasks);
+        noTasksAvailableInfo = (TextView) getActivity().findViewById(R.id.notaskstextview);
+
         tasksRecyclerViewAdapter = new FirebaseRecyclerAdapter<Task, TaskHolder>(Task.class, R.layout.group_tasks_item, TaskHolder.class, mTaskReference) {
             @Override
             protected void populateViewHolder(TaskHolder viewHolder, final Task task, int position) {
@@ -150,8 +156,18 @@ public class GroupTasksListFragment extends Fragment {
 
                 @Override
                 protected void onDataChanged() {
-                    // If there are no chat messages, show a view that invites the user to add a message.
-                    recyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+
+                    if (tasksRecyclerViewAdapter.getItemCount() == 0) {
+                        noTasksAvailableSunImage.setVisibility(View.VISIBLE);
+                        noTasksAvailableInfo.setVisibility(View.VISIBLE);
+                    }
+
+                    else
+                    {
+                        noTasksAvailableSunImage.setVisibility(View.GONE);
+                        noTasksAvailableInfo.setVisibility(View.GONE);
+                    }
+                   //recyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                 }
             };
 
