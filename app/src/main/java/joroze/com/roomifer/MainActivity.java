@@ -677,7 +677,7 @@ public class MainActivity extends AppCompatActivity
 
             dialogMsg = new StringBuilder("Are you sure you want to leave the group: \"");
             dialogMsg.append(selectedGroup.getGroupName());
-            dialogMsg.append("?");
+            dialogMsg.append("\"?");
 
             if (selectedGroup.getAuthor_id().equals(clientUser.getFb_uid()))
             {

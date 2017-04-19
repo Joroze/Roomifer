@@ -1,6 +1,9 @@
 
 package joroze.com.roomifer;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -18,7 +21,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,7 +47,7 @@ import java.util.Map;
 */
 
 
-public class GroupTasksListFragment extends Fragment implements CreateTaskDialogFragment.CreateTaskDialogListener {
+public class GroupTasksListFragment extends Fragment {
 
     private static final String TAG = "SignInActivity";
 
@@ -161,12 +168,81 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
     }
 
 
+    Dialog createTaskDialog;
+    TextView taskTime;
+    TextView taskDate;
+
+    TimePickerDialog.OnTimeSetListener mTimeSetListener =
+            new TimePickerDialog.OnTimeSetListener() {
+                @Override
+                public void onTimeSet(android.widget.TimePicker view,
+                                      int hourOfDay, int minute) {
+
+                    taskTime = (TextView) createTaskDialog.findViewById(R.id.createTaskTimeTextView);
+                    //Display the user changed time on TextView
+                    taskTime.setText("Hour : " + String.valueOf(hourOfDay)
+                            + "\nMinute : " + String.valueOf(minute));
+                }
+            };
+
+    DatePickerDialog.OnDateSetListener mDateSetListener =
+            new DatePickerDialog.OnDateSetListener() {
+                @Override
+                public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+
+                    taskDate = (TextView) createTaskDialog.findViewById(R.id.createTaskDayTextView);
+                    //Display the user changed time on TextView
+                    taskDate.setText("Day : " + String.valueOf(day)
+                            + "\nMonth : " + String.valueOf(month) + "\nYear : " + String.valueOf(year));
+
+                }
+            };
+
+
+
+
     public void showCreateTaskDialog() {
-        //Create an instance of the dialog fragment and show it
-        CreateTaskDialogFragment dialog = new CreateTaskDialogFragment();
-        dialog.setTargetFragment(this, 0);
-        //dialog.show(view.getContext().getApplicationContext().get)
-        dialog.show(getActivity().getSupportFragmentManager(), "CreateTaskDialogFragment");
+
+        // Custom Dialog
+        createTaskDialog = new Dialog(getContext());
+        createTaskDialog.setContentView(R.layout.create_task_dialog_layout);
+
+        Button btnSetTaskTime = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskTime);
+        // if button is clicked, close the custom dialog
+        btnSetTaskTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = new TimePickerFragment(mTimeSetListener);
+                newFragment.show(getFragmentManager(),"TimePicker");
+            }
+        });
+
+        Button btnSetTaskDay = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskDay);
+        // if button is clicked, close the custom dialog
+        btnSetTaskDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = new DatePickerFragment(mDateSetListener);
+                newFragment.show(getFragmentManager(),"DatePicker");
+
+
+            }
+        });
+
+        Button btnTaskDone = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskOk);
+        // if button is clicked, close the custom dialog
+        btnTaskDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                TextView taskTitle = (TextView)createTaskDialog.findViewById(R.id.createTaskTitleTextEntry);
+                TextView taskDescription = (TextView)createTaskDialog.findViewById(R.id.createTaskDescriptionTextEntry);
+                fbWriteNewTask(taskTitle.getText().toString(), taskDescription.getText().toString());
+                createTaskDialog.dismiss();
+            }
+        });
+
+        createTaskDialog.show();
 
 
     }
@@ -206,7 +282,7 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
             dialogMsg = new StringBuilder("Are you sure you want to delete the following task: \"");
             dialogMsg.append(selectedTask.getTitle());
-            dialogMsg.append("?\n\nDescription: ");
+            dialogMsg.append("\"?\n\nDescription: ");
             dialogMsg.append(selectedTask.getDescription());
 
             snackbarDeleteResultMsg = new StringBuilder("You\'ve");
@@ -276,7 +352,7 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
     };
 
 
-    public void fbWriteNewTask(final String taskName) {
+    public void fbWriteNewTask(final String taskName, final String taskDescription) {
 
         DatabaseReference mTaskReference = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(clientUser.getFb_uid()).child("groups");
@@ -308,7 +384,7 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
                 String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
 
-                Task task = new Task(taskKey, taskName, "DESCRIPTION HERE", clientUser);
+                Task task = new Task(taskKey, taskName, taskDescription, clientUser);
 
 
                clientUser.getGroups().get(group_index).getTasks().add(task);
@@ -390,17 +466,5 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
     }
 
-
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog) {
-
-        EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createTaskTitleTextEntry);
-        fbWriteNewTask(mEdit.getText().toString());
-    }
-
-    @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
-
-    }
 }
 
