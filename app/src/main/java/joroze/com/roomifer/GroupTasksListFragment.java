@@ -53,6 +53,7 @@ public class GroupTasksListFragment extends Fragment {
 
     private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
+    private DatabaseReference mGroupReference;
     private DatabaseReference mTaskReference;
 
     FirebaseUser mCurrentUser;
@@ -70,11 +71,15 @@ public class GroupTasksListFragment extends Fragment {
     String group_id;
     int group_index;
 
+    Group currentGroup;
+
+    private ValueEventListener mGroupListener;
+
     public GroupTasksListFragment() {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
 
@@ -90,6 +95,31 @@ public class GroupTasksListFragment extends Fragment {
 
         group_id = this.getArguments().getString("group_id");
         group_index = this.getArguments().getInt("group_index");
+
+
+
+        mGroupReference = FirebaseDatabase.getInstance().getReference().child("groups").child(group_id);
+
+        ValueEventListener groupListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Group object and use the values to update the UI
+
+                Log.d(TAG, "Updating currentGroup!");
+                currentGroup = dataSnapshot.getValue(Group.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadGroup:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        mGroupReference.addValueEventListener(groupListener);
+
+        // Save the reference to the groupListener
+        mGroupListener = groupListener;
 
 
         mTaskReference = FirebaseDatabase.getInstance().getReference()
@@ -291,7 +321,7 @@ public class GroupTasksListFragment extends Fragment {
 
             selectedTaskPosition = viewHolder.getAdapterPosition();
             //clientUser.getGroups().get()
-            selectedTask = clientUser.getGroups().get(group_index).getTasks().get(selectedTaskPosition);
+            selectedTask = currentGroup.getTasks().get(selectedTaskPosition);
             deleteTaskChildUpdates = new HashMap<>();
 
             dialogTitle = new StringBuilder("Delete Task");
@@ -335,10 +365,10 @@ public class GroupTasksListFragment extends Fragment {
                             tasksRecyclerViewAdapter.notifyItemRemoved(selectedTaskPosition);
 
                             // Remove group from client user object
-                            clientUser.getGroups().get(group_index).getTasks().remove(selectedTaskPosition);
+                            currentGroup.getTasks().remove(selectedTaskPosition);
 
-                            Map<String, Object> userValues = clientUser.toMap();
-                            deleteTaskChildUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+                            Map<String, Object> groupValues = currentGroup.toMap();
+                            deleteTaskChildUpdates.put("/groups/" + currentGroup.getGroup_id(), groupValues);
 
                             mDatabase.updateChildren(deleteTaskChildUpdates);
 
@@ -370,64 +400,19 @@ public class GroupTasksListFragment extends Fragment {
 
     public void fbWriteNewTask(final String taskName, final String taskDescription) {
 
-        DatabaseReference mTaskReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(clientUser.getFb_uid()).child("groups");
+        String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
 
-        ValueEventListener taskListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
+        Task task = new Task(taskKey, taskName, taskDescription, clientUser);
 
+        currentGroup.getTasks().add(task);
 
+        Map<String, Object> groupValues = currentGroup.toMap();
 
-                    // If the check was passed, we update the user values to the client android app
-                clientUser.getGroups().clear();
-
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Group group = postSnapshot.getValue(Group.class);
-                    clientUser.getGroups().add(group);
-                }
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/groups/" + group_id, groupValues);
 
 
-
-                    //for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    //Group group = postSnapshot.getValue(Group.class);
-                    //  clientUser.getGroups().put(group.getId(),group);
-                    //}
-
-
-
-
-                String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
-
-                Task task = new Task(taskKey, taskName, taskDescription, clientUser);
-
-
-               clientUser.getGroups().get(group_index).getTasks().add(task);
-
-                //clientUser.getGroups().get(group_id).getTasks().add(task);
-
-                Map<String, Object> taskValues = task.toMap();
-                Map<String, Object> userValues = clientUser.toMap();
-
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/groups/" + group_id + "/tasks/" + taskKey, taskValues);
-                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
-
-
-                mDatabase.updateChildren(childUpdates);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
-
-        mTaskReference.addListenerForSingleValueEvent(taskListener);
-        mTaskReference.removeEventListener(taskListener);
+        mDatabase.updateChildren(childUpdates);
 
 
         // On success
@@ -458,14 +443,6 @@ public class GroupTasksListFragment extends Fragment {
                     getActivity().finish();
                 }
 
-                Map<String, Object> userValues = clientUser.toMap();
-
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
-
-                // update any information to the database
-                mDatabase.updateChildren(childUpdates);
-
             }
 
             @Override
@@ -477,8 +454,19 @@ public class GroupTasksListFragment extends Fragment {
         };
 
         mUserReference.addListenerForSingleValueEvent(userListener);
-
         mUserReference.removeEventListener(userListener);
+
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        // Remove group value event listener
+        if (mGroupListener != null) {
+            mGroupReference.removeEventListener(mGroupListener);
+        }
 
     }
 

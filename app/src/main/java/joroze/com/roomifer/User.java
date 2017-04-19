@@ -32,8 +32,7 @@ public class User {
     private String email;
 
 
-
-    private ArrayList<Group> groups = new ArrayList<>();
+    private HashMap<String, Boolean> groups = new HashMap<>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -48,7 +47,7 @@ public class User {
         this.profilePictureUrl = profilePictureUrl;
     }
 
-    public User(String fb_uid, String displayName, String email, String profilePictureUrl, ArrayList<Group> groups) {
+    public User(String fb_uid, String displayName, String email, String profilePictureUrl, HashMap<String, Boolean> groups) {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.displayName = displayName;
@@ -60,7 +59,7 @@ public class User {
     @Exclude
     public void addToGroup(Group group)
     {
-        groups.add(group);
+        groups.put(group.getGroup_id(), true);
     }
 
 
@@ -120,11 +119,11 @@ public class User {
         this.profilePictureUrl = profilePictureUri;
     }
 
-    public ArrayList<Group> getGroups() {
+    public HashMap<String, Boolean> getGroups() {
         return groups;
     }
 
-    public void setGroups(ArrayList<Group> groups) {
+    public void setGroups(HashMap<String, Boolean> groups) {
         this.groups = groups;
     }
 
