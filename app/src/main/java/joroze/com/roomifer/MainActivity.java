@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseIndexRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView.OnNavigationItemSelectedListener,
         CreateGroupDialogFragment.CreateGroupDialogListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener{
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "SignInActivity";
 
@@ -73,12 +74,10 @@ public class MainActivity extends AppCompatActivity
     boolean firstSignInCheck = false;
 
 
-
     boolean fullGroupDelete = false;
 
 
-
-    FirebaseRecyclerAdapter groupRecyclerViewAdapter;
+    FirebaseIndexRecyclerAdapter groupRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
 
@@ -90,6 +89,7 @@ public class MainActivity extends AppCompatActivity
     Map<String, Object> leaveGroupChildUpdates;
 
     StringBuilder snackbarDeleteResultMsg;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,10 +121,9 @@ public class MainActivity extends AppCompatActivity
         // [END build_client]
 
 
-
         itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
 
-        recyclerView = (RecyclerView)findViewById(R.id.recyclegrouplist);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclegrouplist);
         recyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setReverseLayout(false);
@@ -133,6 +132,8 @@ public class MainActivity extends AppCompatActivity
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         mAuth = FirebaseAuth.getInstance();
+
+
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -151,37 +152,37 @@ public class MainActivity extends AppCompatActivity
                     showSnackbar(1);
 
 
+                    DatabaseReference keyRef = FirebaseDatabase.getInstance().getReference().child("users")
+                            .child(mCurrentUser.getUid()).child("groups");
+                    DatabaseReference dataRef = FirebaseDatabase.getInstance().getReference().child("groups");
+
                     // mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")
-                    groupRecyclerViewAdapter = new FirebaseRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, mDatabase.child("groups").orderByChild(mCurrentUser.getUid()) ) {
+                    groupRecyclerViewAdapter = new FirebaseIndexRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, keyRef, dataRef) {
                         @Override
                         protected void populateViewHolder(GroupHolder viewHolder, final Group group, final int position) {
-
-                            //clientUser.addToGroup(group);
 
                             viewHolder.setCardGroupName(group.getGroupName());
                             viewHolder.setGroupMemberCount(group.getMembers().size());
                             viewHolder.setCardAuthorProfileImg(group.getAuthorProfilePictureUrl());
 
-                            viewHolder.itemView.setOnClickListener(new View.OnClickListener()
-                            {
+                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
                                     Intent nextActivity = new Intent(getApplicationContext(), GroupContentActivity.class);
                                     nextActivity.putExtra("group_id", group.getGroup_id());
                                     nextActivity.putExtra("group_name", group.getGroupName());
-                                    nextActivity.putExtra("group_index", position);
                                     startActivity(nextActivity);
                                 }
                             });
 
                         }
 
-
                         @Override
                         protected void onDataChanged() {
                             // If there are no chat messages, show a view that invites the user to add a message.
-                            recyclerView.setVisibility(groupRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                            //recyclerView.setVisibility(groupRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                         }
+
                     };
 
                     // Scroll to bottom on new messages
@@ -195,17 +196,11 @@ public class MainActivity extends AppCompatActivity
 
                     recyclerView.setAdapter(groupRecyclerViewAdapter);
 
-
-                    //updateUserProfile();
-
-
                 } else {
                     Log.d(TAG, "User is currently signed out");
                 }
             }
         };
-
-        //itemTouchHelper.attachToRecyclerView(recyclerView);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -497,8 +492,7 @@ public class MainActivity extends AppCompatActivity
 
                     if (mCurrentUser.getPhotoUrl() == null) {
                         photoUrl = "";
-                    }
-                    else
+                    } else
                         photoUrl = mCurrentUser.getPhotoUrl().toString();
 
                     clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), photoUrl);
@@ -566,12 +560,10 @@ public class MainActivity extends AppCompatActivity
                     // If the check was passed, we update the user values to the client android app
                     clientUser.getGroups().clear();
 
-                    clientUser.setGroups((HashMap<String, Boolean>)dataSnapshot.child("groups").getChildren());
+                    clientUser.setGroups((HashMap<String, Boolean>) dataSnapshot.child("groups").getValue());
                     //HashMap<String, Boolean> groups = (HashMap<String, Boolean>) dataSnapshot.child("groups").getChildren();
 
-                }
-
-                else if (!dataSnapshot.child("groups").exists()){
+                } else if (!dataSnapshot.child("groups").exists()) {
 
                     if (!dataSnapshot.exists()) {
                         Log.d(TAG, "User DOES NOT EXIST, Logging the user out (back to login screen)");
@@ -615,8 +607,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
     public void fbDeleteAccount() {
         final Map<String, Object> childUpdates = new HashMap<>();
 
@@ -628,8 +618,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if (dataSnapshot.exists())
-                {
+                if (dataSnapshot.exists()) {
 
                     for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
 
@@ -637,8 +626,7 @@ public class MainActivity extends AppCompatActivity
 
                         Group aGroup = postSnapShot.getValue(Group.class);
 
-                        if (clientUser.getFb_uid().equals(aGroup.getAuthor_id()))
-                        {
+                        if (clientUser.getFb_uid().equals(aGroup.getAuthor_id())) {
                             childUpdates.put("/groups/" + aGroup.getGroup_id(), null);
                         }
 
@@ -674,9 +662,6 @@ public class MainActivity extends AppCompatActivity
 
 
     }
-
-
-
 
 
     ItemTouchHelper.SimpleCallback simpleCallbackItemTouchHelper = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
@@ -716,8 +701,7 @@ public class MainActivity extends AppCompatActivity
                     dialogMsg.append(selectedGroup.getGroupName());
                     dialogMsg.append("\"?");
 
-                    if (selectedGroup.getAuthor_id().equals(clientUser.getFb_uid()))
-                    {
+                    if (selectedGroup.getAuthor_id().equals(clientUser.getFb_uid())) {
                         fullGroupDelete = true;
                         dialogTitle.append(" and Delete");
                         dialogMsg.append("\n\n(Since you\'re the owner, the group will also be deleted)");
@@ -744,8 +728,7 @@ public class MainActivity extends AppCompatActivity
                                 public void onClick(DialogInterface dialog, int id) {
 
                                     // If clientUser deletes a group that it is the author of, then delete it from database
-                                    if (fullGroupDelete)
-                                    {
+                                    if (fullGroupDelete) {
                                         // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
                                         Log.d(TAG, "Group ID to be deleted is: " + selectedGroup.getGroup_id());
                                         leaveGroupChildUpdates.put("/groups/" + selectedGroup.getGroup_id(), null);
@@ -800,13 +783,6 @@ public class MainActivity extends AppCompatActivity
                     //====================================================================================
 
 
-
-
-
-
-
-
-
                 }
 
                 @Override
@@ -817,10 +793,6 @@ public class MainActivity extends AppCompatActivity
 
             mGroupReference.addListenerForSingleValueEvent(groupListener);
             mGroupReference.removeEventListener(groupListener);
-
-
-
-
 
 
         }

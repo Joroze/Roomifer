@@ -1,37 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/MainMenuBackgroundColor"
     tools:context="joroze.com.roomifer.GroupContentActivity">
+
+
+
+    <android.support.v7.widget.Toolbar
+
+        android:id="@+id/searchToolBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary">
+    </android.support.v7.widget.Toolbar>
+
+<com.miguelcatalan.materialsearchview.MaterialSearchView
+    android:id="@+id/searchView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:searchBackground="@color/colorPrimary"
+    app:searchSuggestionBackground="@color/colorPrimary"
+    app:searchCloseIcon="@drawable/ic_action_navigation_close_inverted"
+    app:searchBackIcon="@drawable/ic_action_navigation_arrow_back_inverted"
+    app:searchSuggestionIcon="@drawable/ic_suggestion"
+    android:textColor="#FFFFFF"
+    android:textColorHint="#FFFFFF">
+
+</com.miguelcatalan.materialsearchview.MaterialSearchView>
+
+
+    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/listviewUser"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchToolBar"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        app:layoutManager="LinearLayoutManager"
+        tools:listitem="@layout/user_search_item" />
 
 
 
     <FrameLayout
         android:id="@+id/contentframelayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        tools:listitem="@layout/group_tasks_item">
+        android:layout_height="match_parent"
 
+        android:layout_below="@id/searchToolBar"
+        android:layout_above="@+id/navigation">
 
-        <TextView
-            android:id="@+id/message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="@dimen/activity_vertical_margin" />
 
         <RelativeLayout
             android:id="@+id/GroupContentSnackBarView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
     </RelativeLayout>
+
     </FrameLayout>
 
 
@@ -41,8 +73,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="?android:attr/windowBackground"
-        app:menu="@menu/navigation" />
+        app:menu="@menu/navigation"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
 
 
 
-</LinearLayout>
+</RelativeLayout>

@@ -69,7 +69,6 @@ public class GroupTasksListFragment extends Fragment {
     private ItemTouchHelper itemTouchHelper;
 
     String group_id;
-    int group_index;
 
     Group currentGroup;
 
@@ -94,9 +93,6 @@ public class GroupTasksListFragment extends Fragment {
         }
 
         group_id = this.getArguments().getString("group_id");
-        group_index = this.getArguments().getInt("group_index");
-
-
 
         mGroupReference = FirebaseDatabase.getInstance().getReference().child("groups").child(group_id);
 
@@ -294,12 +290,10 @@ public class GroupTasksListFragment extends Fragment {
     }
 
 
-    Task selectedTask;
-    int selectedTaskPosition;
-
-    Map<String, Object> deleteTaskChildUpdates;
-
-    StringBuilder snackbarDeleteResultMsg;
+    private Task selectedTask;
+    private int selectedTaskPosition;
+    private Map<String, Object> deleteTaskChildUpdates;
+    private StringBuilder snackbarDeleteResultMsg;
 
 
     ItemTouchHelper.SimpleCallback simpleCallbackItemTouchHelper = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
@@ -354,7 +348,7 @@ public class GroupTasksListFragment extends Fragment {
                             // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
 
                             // Deletes the target task
-                            deleteTaskChildUpdates.put("/groups/" + group_id + "/tasks/" + selectedTask.getId(), null);
+                            //deleteTaskChildUpdates.put("/groups/" + group_id + "/tasks/" + selectedTask.getId(), null);
 
                             snackbarDeleteResultMsg.append(" deleted the task: \"");
                             snackbarDeleteResultMsg.append(selectedTask.getTitle());
