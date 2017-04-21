@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         protected void onDataChanged() {
                             // If there are no chat messages, show a view that invites the user to add a message.
-                            //recyclerView.setVisibility(groupRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                            //groupMemberRosterRecyclerView.setVisibility(groupMemberRosterRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                         }
 
                     };
@@ -434,6 +434,7 @@ public class MainActivity extends AppCompatActivity
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+
     }
 
     protected void onResume() {
@@ -749,7 +750,7 @@ public class MainActivity extends AppCompatActivity
                                     snackbarDeleteResultMsg.append("\"");
 
                                     // Remove group item from the Recycler List
-                                    //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
+                                    //groupMemberRosterRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
                                     groupRecyclerViewAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
 
                                     // Remove group from client user object

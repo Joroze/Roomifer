@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,10 +25,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class GroupContentActivity extends AppCompatActivity {
 
@@ -50,6 +45,11 @@ public class GroupContentActivity extends AppCompatActivity {
     StringBuilder groupTitle;
 
     Fragment groupSectionFragment;
+
+    MaterialSearchView searchView;
+    private RecyclerView recyclerView;
+    private FirebaseRecyclerAdapter userRecyclerViewAdapter;
+    private String queryUserName;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -79,15 +79,13 @@ public class GroupContentActivity extends AppCompatActivity {
                     transaction.commit();
                     return true;
                 case R.id.group_navigation_notifications:
-                    transaction.replace(R.id.contentframelayout, new Fragment());
+                    groupSectionFragment = new GroupNotificationsFragment();
+                    groupSectionFragment.setArguments(bundle);
+                    transaction.replace(R.id.contentframelayout, groupSectionFragment);
                     transaction.commit();
-                    //fragment = new GroupTasksListFragment();
-                    //transaction.replace(R.id.contentFragment, fragment);
-                    //transaction.commit();
+
                     return true;
             }
-
-
 
 
 
@@ -95,31 +93,6 @@ public class GroupContentActivity extends AppCompatActivity {
         }
 
     };
-
-    RecyclerView recyclerView;
-    FirebaseRecyclerAdapter userRecyclerViewAdapter;
-
-    String[] lstSource =
-            {
-                    "Harry",
-                    "Ron",
-                    "Herroine",
-                    "Dan",
-                    "Daniel",
-                    "Joshua",
-                    "Adam",
-                    "Christian",
-                    "Joe",
-                    "Joseph",
-                    "Stalin",
-                    "Hitler",
-                    "Anguser"
-
-
-            };
-
-
-    String queryUserName;
 
 
     @Override
@@ -133,9 +106,59 @@ public class GroupContentActivity extends AppCompatActivity {
         toolbar.setTitleTextColor(Color.parseColor("#FFFFFF"));
 
 
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (mCurrentUser == null) {
+            Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
+            finish();
+        }
 
 
+        group_id = getIntent().getStringExtra("group_id");
+        group_name = getIntent().getStringExtra("group_name");
 
+
+        groupTitle = new StringBuilder("Add Members");
+
+        getSupportActionBar().setTitle(groupTitle);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+
+        navigation.setSelectedItemId(R.id.group_navigation_list);
+
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+        Bundle bundle = new Bundle();
+        bundle.putString("group_id", group_id );
+        groupSectionFragment = new GroupTasksListFragment();
+        groupSectionFragment.setArguments(bundle);
+        transaction.replace(R.id.contentframelayout, groupSectionFragment);
+        transaction.commit();
+
+
+        setupSearchBar();
+
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.menu_items,menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        searchView.setMenuItem(item);
+        return true;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void setupSearchBar()
+    {
         recyclerView = (RecyclerView) findViewById(R.id.listviewUser);
 
 
@@ -151,12 +174,6 @@ public class GroupContentActivity extends AppCompatActivity {
                 fm.beginTransaction()
                         .hide(groupSectionFragment)
                         .commit();
-
-
-
-                //userRecyclerViewAdapter.notifyDataSetChanged();
-
-                //recyclerView.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -166,16 +183,6 @@ public class GroupContentActivity extends AppCompatActivity {
                 fm.beginTransaction()
                         .show(groupSectionFragment)
                         .commit();
-
-
-                //userRecyclerViewAdapter.notifyDataSetChanged();
-                // If closed Search View, recyclerView will return default
-
-                //recyclerView = (RecyclerView)findViewById(R.id.listviewUser);
-                //userRecyclerViewAdapter = new ArrayAdapter(GroupContentActivity.this, android.R.layout.simple_list_item_1, new ArrayList());
-                //recyclerView.setAdapter(userRecyclerViewAdapter);
-                //recyclerView.setVisibility(View.GONE);
-
             }
         });
 
@@ -190,53 +197,35 @@ public class GroupContentActivity extends AppCompatActivity {
 
                 if (newText != null && !newText.isEmpty())
                 {
-
-
-                    queryUserName = newText;
-
-                    /*
-                    List<String> lstFound = new ArrayList<String>();
-                    for (String item : lstSource)
-                    {
-                        if (item.contains(newText))
-                        {
-                            lstFound.add(item);
-                        }
-                    }
-
-                    userRecyclerViewAdapter.
-                    userRecyclerViewAdapter = new ArrayAdapter(GroupContentActivity.this, android.R.layout.simple_list_item_1, lstFound);
-                    recyclerView.setAdapter(userRecyclerViewAdapter);
-                    */
-
+                    queryUserName = newText.toLowerCase();
                 }
                 else
                 {
-
                     queryUserName = "";
-                    // If search text is null
-                    // return default
-
-                    //userRecyclerViewAdapter = new Fire(GroupContentActivity.this, android.R.layout.simple_list_item_1, new ArrayList());
-                    //recyclerView.setAdapter(userRecyclerViewAdapter);
                 }
 
 
-                Query mUserQuery = mDatabaseRef.child("users").orderByChild("displayName").equalTo(queryUserName);
+                Query mUserQuery = mDatabaseRef.child("users").orderByChild("displayName_lowercase").equalTo(queryUserName);
 
-                userRecyclerViewAdapter = new FirebaseRecyclerAdapter<User, UserHolder>(User.class, R.layout.user_search_item, UserHolder.class, mUserQuery) {
+                userRecyclerViewAdapter = new FirebaseRecyclerAdapter<User, SearchUserHolder>(User.class, R.layout.user_search_item, SearchUserHolder.class, mUserQuery) {
                     @Override
-                    protected void populateViewHolder(UserHolder viewHolder, final User user, int position) {
+                    protected void populateViewHolder(SearchUserHolder viewHolder, final User user, int position) {
 
                         Log.d(TAG, "Found USER: \"" + user.getDisplayName() + "\" with ID: " + user.getFb_uid());
 
                         viewHolder.setUserName(user.getDisplayName());
+                        viewHolder.setUserTaskPoints(user.getTaskPoints());
                         viewHolder.setUserProfileImg(user.getProfilePictureUrl());
 
                         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 // When a user item is clicked in the list
+
+                                if (user.getFb_uid().equals(mCurrentUser.getUid()))
+                                {
+                                    return;
+                                }
 
                                 snackbarAddMemberResultMsg = new StringBuilder("Added \"");
                                 snackbarAddMemberResultMsg.append(user.getDisplayName());
@@ -306,72 +295,14 @@ public class GroupContentActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (mCurrentUser == null) {
-            Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
-            finish();
-        }
-
-
-        group_id = getIntent().getStringExtra("group_id");
-        group_name = getIntent().getStringExtra("group_name");
-
-
-
-
-
-        groupTitle = new StringBuilder("Add Members to: \"");
-        groupTitle.append(group_name);
-        groupTitle.append("\"");
-
-
-
-
-        getSupportActionBar().setTitle(groupTitle);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-
-        navigation.setSelectedItemId(R.id.group_navigation_list);
-
-
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-        Bundle bundle = new Bundle();
-        bundle.putString("group_id", group_id );
-        groupSectionFragment = new GroupTasksListFragment();
-        groupSectionFragment.setArguments(bundle);
-        transaction.replace(R.id.contentframelayout, groupSectionFragment);
-        transaction.commit();
-
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
 
-    MaterialSearchView searchView;
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
+    public void onStop()
     {
-        getMenuInflater().inflate(R.menu.menu_items,menu);
-        MenuItem item = menu.findItem(R.id.action_search);
-        searchView.setMenuItem(item);
-        return true;
+        super.onStop();
+
     }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-    }
-
-
-
-
-
-
-
 
 }

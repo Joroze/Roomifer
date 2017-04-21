@@ -50,7 +50,7 @@ public class Task {
         this.authorName = authorUser.getDisplayName();
         this.author_id = authorUser.getFb_uid();
         this.assigneeName = assigneeUser.getDisplayName();
-        this.assignee_id = assigneeUser.getG_uid();
+        this.assignee_id = assigneeUser.getFb_uid();
         this.assigneeProfilePicUrl = assigneeUser.getProfilePictureUrl();
 
     }

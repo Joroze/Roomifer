@@ -3,17 +3,62 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/common_google_signin_btn_text_dark_disabled"
-    android:orientation="vertical">
+    android:background="@color/GroupSettingsColor"
+    android:orientation="vertical"
+    >
 
 
-    <Button
-        android:id="@+id/button2"
+    <TextView
+        android:id="@+id/groupSettingsMemberCountTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
+        android:text="#"
+        android:layout_marginEnd="5dp"
+        android:textAppearance="?attr/textAppearanceListItem"
+        android:layout_below="@+id/renameGroupNameEntry"
+        android:layout_alignStart="@+id/renameGroupNameEntry"
+        android:layout_marginTop="23dp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="members"
+        android:layout_alignBottom="@+id/groupSettingsMemberCountTextView"
+        android:layout_toEndOf="@+id/groupSettingsMemberCountTextView" />
+
+    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/listGroupMemberUsers"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:background="#5c7683"
+        app:layoutManager="LinearLayoutManager"
+        tools:listitem="@layout/group_member_list_item" />
+
+    <EditText
+        android:id="@+id/renameGroupNameEntry"
+        android:inputType="textCapWords"
+        android:maxLength="20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Group Name"
+        android:layout_marginTop="14dp"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="136dp"
-        android:layout_marginTop="170dp"
-        android:text="Button" />
+        android:layout_alignStart="@+id/updateGroupSettingsButton" />
+
+    <Button
+        android:id="@+id/updateGroupSettingsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Update Group"
+        android:layout_marginBottom="21dp"
+        android:layout_marginStart="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/listGroupMemberUsers" />
+
+
 </RelativeLayout>

@@ -25,10 +25,14 @@ public class User {
     @Exclude
     private String fb_uid;
 
+    private int taskPoints = 0;
 
     private String profilePictureUrl;
 
     private String displayName;
+
+    // This is a good property for searching a user on the database, this way the Query is not case-sensitive
+    private String displayName_lowercase;
     private String email;
 
 
@@ -43,6 +47,7 @@ public class User {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.displayName = displayName;
+        this.displayName_lowercase = displayName.toLowerCase();
         this.email = email;
         this.profilePictureUrl = profilePictureUrl;
     }
@@ -51,6 +56,7 @@ public class User {
         //this.fbUserKey = fbUserKey;
         this.fb_uid = fb_uid;
         this.displayName = displayName;
+        this.displayName_lowercase = displayName.toLowerCase();
         this.email = email;
         this.profilePictureUrl = profilePictureUrl;
         this.groups = groups;
@@ -69,6 +75,8 @@ public class User {
 
         result.put("fb_uid", fb_uid);
         result.put("displayName", displayName);
+        result.put("displayName_lowercase", displayName_lowercase);
+        result.put("taskPoints", taskPoints);
         result.put("email", email);
         result.put("profilePictureUrl", profilePictureUrl);
         result.put("groups", groups);
@@ -85,14 +93,17 @@ public class User {
         this.fb_uid = fb_uid;
     }
 
-    public String getG_uid() {
-        return fb_uid;
+    public String getDisplayName_lowercase() {
+        return displayName_lowercase;
     }
 
-    public void setG_uid(String g_uid) {
-        this.fb_uid = fb_uid;
+    public int getTaskPoints() {
+        return taskPoints;
     }
 
+    public void setTaskPoints(int taskPoints) {
+        this.taskPoints = taskPoints;
+    }
 
     public String getDisplayName() {
         return displayName;
@@ -100,6 +111,7 @@ public class User {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+        this.displayName_lowercase = displayName.toLowerCase();
     }
 
     public String getEmail() {

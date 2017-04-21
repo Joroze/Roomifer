@@ -64,7 +64,7 @@ public class GroupTasksListFragment extends Fragment {
     ImageView noTasksAvailableSunImage;
     TextView noTasksAvailableInfo;
 
-    RecyclerView.Adapter tasksRecyclerViewAdapter;
+    FirebaseRecyclerAdapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
 
@@ -193,7 +193,7 @@ public class GroupTasksListFragment extends Fragment {
                         noTasksAvailableSunImage.setVisibility(View.GONE);
                         noTasksAvailableInfo.setVisibility(View.GONE);
                     }
-                   //recyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                   //groupMemberRosterRecyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                 }
             };
 
@@ -355,7 +355,7 @@ public class GroupTasksListFragment extends Fragment {
                             snackbarDeleteResultMsg.append("\"");
 
                             // Remove group item from the Recycler List
-                            //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
+                            //groupMemberRosterRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
                             tasksRecyclerViewAdapter.notifyItemRemoved(selectedTaskPosition);
 
                             // Remove group from client user object
@@ -461,6 +461,9 @@ public class GroupTasksListFragment extends Fragment {
         if (mGroupListener != null) {
             mGroupReference.removeEventListener(mGroupListener);
         }
+
+        tasksRecyclerViewAdapter.cleanup();
+
 
     }
 

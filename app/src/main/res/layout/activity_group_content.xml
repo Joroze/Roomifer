@@ -7,9 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/MainMenuBackgroundColor"
+    android:background="@color/ShadeBackground"
     tools:context="joroze.com.roomifer.GroupContentActivity">
-
 
 
     <android.support.v7.widget.Toolbar

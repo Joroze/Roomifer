@@ -65,7 +65,6 @@
             android:id="@+id/createTaskTimeTextView"
             android:inputType="none"
             android:layout_below="@id/buttonSetTaskTime"
-            android:maxLength="150"
             android:layout_alignParentStart="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -73,7 +72,6 @@
             android:layout_marginRight="4dp"
             android:layout_marginBottom="4dp"
             android:textAlignment="center"
-
             android:hint="Unset"
             android:layout_toStartOf="@+id/buttonSetTaskDay" />
 
@@ -81,7 +79,6 @@
             android:id="@+id/createTaskDayTextView"
             android:inputType="none"
             android:layout_below="@id/buttonSetTaskDay"
-            android:maxLength="150"
             android:layout_toRightOf="@id/createTaskTimeTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
