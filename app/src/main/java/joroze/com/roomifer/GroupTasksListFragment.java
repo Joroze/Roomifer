@@ -54,15 +54,16 @@ public class GroupTasksListFragment extends Fragment {
     private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
     private DatabaseReference mGroupReference;
+    private DatabaseReference mUserReference;
     private DatabaseReference mTaskReference;
 
     FirebaseUser mCurrentUser;
-    User clientUser;
     LinearLayoutManager linearLayoutManager;
-
 
     ImageView noTasksAvailableSunImage;
     TextView noTasksAvailableInfo;
+    TextView taskListGroupNameTextView;
+    TextView tasklistUserPointsTextView;
 
     FirebaseRecyclerAdapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
@@ -71,8 +72,11 @@ public class GroupTasksListFragment extends Fragment {
     String group_id;
 
     Group currentGroup;
+    User currentClientUser;
 
     private ValueEventListener mGroupListener;
+    private ValueEventListener mUserListener;
+
 
     public GroupTasksListFragment() {
     }
@@ -82,8 +86,12 @@ public class GroupTasksListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
 
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        View rootView = inflater.inflate(R.layout.fragment_group_tasks_list, container, false);
 
+        taskListGroupNameTextView = (TextView) rootView.findViewById(R.id.tasklistGroupNameTextView);
+        tasklistUserPointsTextView = (TextView) rootView.findViewById(R.id.tasklistUserPointsTextView);
+
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (mCurrentUser == null) {
             Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
@@ -101,8 +109,16 @@ public class GroupTasksListFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Group object and use the values to update the UI
 
-                Log.d(TAG, "Updating currentGroup!");
-                currentGroup = dataSnapshot.getValue(Group.class);
+                if (dataSnapshot.exists()) {
+
+                    Log.d(TAG, "Updating currentGroup!");
+                    currentGroup = dataSnapshot.getValue(Group.class);
+                    taskListGroupNameTextView.setText(currentGroup.getGroupName());
+                } else {
+                    Log.d(TAG, "Group does not exist. Going back to Main activity! ");
+                    getActivity().finish();
+                }
+
             }
 
             @Override
@@ -122,7 +138,7 @@ public class GroupTasksListFragment extends Fragment {
                 .child("groups").child(group_id).child("tasks");
 
 
-        View rootView = inflater.inflate(R.layout.fragment_group_tasks_list, container, false);
+
 
 
         itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
@@ -136,8 +152,8 @@ public class GroupTasksListFragment extends Fragment {
         recyclerView.setLayoutManager(linearLayoutManager);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        //DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        //recyclerView.addItemDecoration(dividerItemDecoration);
 
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabaddtask);
 
@@ -164,7 +180,7 @@ public class GroupTasksListFragment extends Fragment {
 
         tasksRecyclerViewAdapter = new FirebaseRecyclerAdapter<Task, TaskHolder>(Task.class, R.layout.group_tasks_item, TaskHolder.class, mTaskReference) {
             @Override
-            protected void populateViewHolder(TaskHolder viewHolder, final Task task, int position) {
+            protected void populateViewHolder(TaskHolder viewHolder, Task task, final int position) {
 
                 viewHolder.setTaskTitle(task.getTitle());
                 //viewHolder.setTaskAssigneeName();
@@ -173,6 +189,8 @@ public class GroupTasksListFragment extends Fragment {
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+
+                        showTaskContentDialog(position);
 
                     }
                 });
@@ -330,13 +348,13 @@ public class GroupTasksListFragment extends Fragment {
             // ========================================================================
             // Programmatically create an Alert Dialog box "pop-up"
             // DIALOG LOGIC STARTS HERE ===============================================
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder deleteTaskDialogBuilder = new AlertDialog.Builder(getActivity());
 
             // set title of the alert dialog
-            alertDialogBuilder.setTitle(dialogTitle);
+            deleteTaskDialogBuilder.setTitle(dialogTitle);
 
             // set dialog message
-            alertDialogBuilder
+            deleteTaskDialogBuilder
 
                     // TODO: Use custom text with HTML design
                     // http://stackoverflow.com/questions/9935692/how-to-set-part-of-text-to-bold-when-using-alertdialog-setmessage-in-android
@@ -382,7 +400,7 @@ public class GroupTasksListFragment extends Fragment {
                     .setCancelable(false);
 
             // create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
+            AlertDialog alertDialog = deleteTaskDialogBuilder.create();
             alertDialog.show();
 
             //DIALOG LOGIC ENDS HERE =============================================================
@@ -392,11 +410,42 @@ public class GroupTasksListFragment extends Fragment {
     };
 
 
+    private Dialog taskContentDialog;
+    TextView taskContentTitle;
+    TextView taskContentDescription;
+
+    private void showTaskContentDialog(int pTaskPosition)
+    {
+        Task task = currentGroup.getTasks().get(pTaskPosition);
+
+        // Custom Dialog
+        taskContentDialog = new Dialog(getContext());
+        taskContentDialog.setContentView(R.layout.task_content_dialog_layout);
+
+        taskContentTitle = (TextView) taskContentDialog.findViewById(R.id.taskContentTitle);
+        taskContentDescription = (TextView) taskContentDialog.findViewById(R.id.taskContentDescriptionTextLabel);
+
+
+        taskContentTitle.setText(task.getTitle());
+        taskContentDescription.setText(task.getDescription());
+
+        Button btnDismissTaskContentDialog = (Button) taskContentDialog.findViewById(R.id.buttonDismissTaskContent);
+        // if button is clicked, close the custom dialog
+        btnDismissTaskContentDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                taskContentDialog.dismiss();
+            }
+        });
+
+        taskContentDialog.show();
+    }
+
     public void fbWriteNewTask(final String taskName, final String taskDescription) {
 
         String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
 
-        Task task = new Task(taskKey, taskName, taskDescription, clientUser);
+        Task task = new Task(taskKey, taskName, taskDescription, currentClientUser);
 
         currentGroup.getTasks().add(task);
 
@@ -417,38 +466,41 @@ public class GroupTasksListFragment extends Fragment {
 
     public void initializeClientUser() {
 
-        DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(mCurrentUser.getUid());
+
+
+        mUserReference = FirebaseDatabase.getInstance().getReference().child("users").child(mCurrentUser.getUid());
 
         ValueEventListener userListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                //User checkUser = dataSnapshot.getValue(User.class);
+                // Get User object and use the values to update the UI
 
                 if (dataSnapshot.exists()) {
-                    // if this user exists, create a user with existing information from Firebase database
-                    Log.d(TAG, dataSnapshot.toString());
-                    User savedUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(savedUser.getFb_uid(), savedUser.getDisplayName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getGroups());
-                } else {
-                    // otherwise, create a new user with default information
+                    Log.d(TAG, "Updating currentClientUser!");
+                    currentClientUser = dataSnapshot.getValue(User.class);
+                    tasklistUserPointsTextView.setText(String.valueOf(currentClientUser.getTaskPoints()) + " pts");
+                }
+
+                else
+                {
                     Log.d(TAG, "User does not exist. Going back to Main activity! ");
                     getActivity().finish();
                 }
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // Getting currentClientUser failed, log a message
+                Log.w(TAG, "loadCurrentClientUser:onCancelled", databaseError.toException());
                 // ...
             }
         };
 
-        mUserReference.addListenerForSingleValueEvent(userListener);
-        mUserReference.removeEventListener(userListener);
+
+        mUserReference.addValueEventListener(userListener);
+
+        // Save the reference to the userListener
+        mUserListener = userListener;
 
     }
 
@@ -460,6 +512,10 @@ public class GroupTasksListFragment extends Fragment {
         // Remove group value event listener
         if (mGroupListener != null) {
             mGroupReference.removeEventListener(mGroupListener);
+        }
+
+        if (mUserListener != null) {
+            mUserReference.removeEventListener(mUserListener);
         }
 
         tasksRecyclerViewAdapter.cleanup();

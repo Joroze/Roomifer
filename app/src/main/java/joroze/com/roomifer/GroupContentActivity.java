@@ -161,10 +161,7 @@ public class GroupContentActivity extends AppCompatActivity {
     {
         recyclerView = (RecyclerView) findViewById(R.id.listviewUser);
 
-
-
         searchView = (MaterialSearchView)findViewById(R.id.searchView);
-
 
         searchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
             @Override
@@ -253,9 +250,6 @@ public class GroupContentActivity extends AppCompatActivity {
                                         .setMessage(dialogMsg)
                                         .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
-
-
-
 
                                                 // Add the selected user's id to the group index
                                                 mDatabaseRef.child("groups").child(group_id).child("members").child(user.getFb_uid()).setValue(true);

@@ -23,7 +23,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -48,7 +47,8 @@ public class GroupSettingsFragment extends Fragment {
 
 
     TextView renameGroupTextEntry;
-    TextView GroupMemberCountTextView;
+    TextView groupMemberCountTextView;
+    TextView groupNameTextView;
 
     String group_id;
     Group currentGroup;
@@ -73,7 +73,9 @@ public class GroupSettingsFragment extends Fragment {
 
 
         renameGroupTextEntry = (TextView) rootView.findViewById(R.id.renameGroupNameEntry);
-        GroupMemberCountTextView = (TextView) rootView.findViewById(R.id.groupSettingsMemberCountTextView);
+        groupMemberCountTextView = (TextView) rootView.findViewById(R.id.groupSettingsMemberCountTextView);
+        groupNameTextView = (TextView) rootView.findViewById(R.id.groupSettingsGroupNameTextView);
+
 
         groupMemberRosterRecyclerView = (RecyclerView) rootView.findViewById(R.id.listGroupMemberUsers);
         groupMemberRosterRecyclerView.setHasFixedSize(false);
@@ -249,8 +251,9 @@ public class GroupSettingsFragment extends Fragment {
                     // if this group exists, create a group instance with existing information from Firebase database
                     currentGroup = dataSnapshot.getValue(Group.class);
 
-                    renameGroupTextEntry.setText(currentGroup.getGroupName());
-                    GroupMemberCountTextView.setText(String.valueOf(currentGroup.getMembers().size()));
+                    groupMemberCountTextView.setText(String.valueOf(currentGroup.getMembers().size()) + " members");
+                    groupNameTextView.setText(currentGroup.getGroupName());
+
 
 
                 } else {

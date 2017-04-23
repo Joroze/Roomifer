@@ -1,31 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/GroupSettingsColor"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
-
-    <TextView
-        android:id="@+id/groupSettingsMemberCountTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="#"
-        android:layout_marginEnd="5dp"
-        android:textAppearance="?attr/textAppearanceListItem"
-        android:layout_below="@+id/renameGroupNameEntry"
-        android:layout_alignStart="@+id/renameGroupNameEntry"
-        android:layout_marginTop="23dp" />
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="members"
-        android:layout_alignBottom="@+id/groupSettingsMemberCountTextView"
-        android:layout_toEndOf="@+id/groupSettingsMemberCountTextView" />
 
     <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -33,32 +13,64 @@
         android:id="@+id/listGroupMemberUsers"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:paddingStart="2dp"
+        android:background="#90a4ae"
         android:paddingEnd="2dp"
-        android:background="#5c7683"
+        android:paddingStart="2dp"
         app:layoutManager="LinearLayoutManager"
         tools:listitem="@layout/group_member_list_item" />
 
-    <EditText
-        android:id="@+id/renameGroupNameEntry"
-        android:inputType="textCapWords"
-        android:maxLength="20"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="Group Name"
-        android:layout_marginTop="14dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/updateGroupSettingsButton" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/listGroupMemberUsers">
 
-    <Button
-        android:id="@+id/updateGroupSettingsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Update Group"
-        android:layout_marginBottom="21dp"
-        android:layout_marginStart="40dp"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/listGroupMemberUsers" />
+
+        <RelativeLayout
+            android:id="@+id/groupSettingsHeaderData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_centerHorizontal="true">
+
+            <TextView
+                android:id="@+id/groupSettingsGroupNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:hint="..."
+                android:inputType="none" />
+
+            <TextView
+                android:id="@+id/groupSettingsMemberCountTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/groupSettingsGroupNameTextView"
+                android:hint="..."
+                android:inputType="none" />
+
+        </RelativeLayout>
+
+        <EditText
+            android:id="@+id/renameGroupNameEntry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/groupSettingsHeaderData"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="14dp"
+            android:hint="Rename Group To..."
+            android:inputType="textCapWords"
+            android:maxLength="20" />
+
+        <Button
+            android:id="@+id/updateGroupSettingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:text="Update Group" />
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

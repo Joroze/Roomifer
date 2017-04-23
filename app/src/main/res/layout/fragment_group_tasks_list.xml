@@ -17,15 +17,46 @@
         android:tint="@android:color/white"
         app:srcCompat="@drawable/ic_add_white_36dp" />
 
+
+<RelativeLayout
+    android:id="@+id/taskListHeaderData"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="10dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_centerHorizontal="true"
+    >
+
+    <TextView
+        android:id="@+id/tasklistGroupNameTextView"
+        android:inputType="none"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginEnd="10dp"
+        android:hint="..." />
+
+    <TextView
+        android:id="@+id/tasklistUserPointsTextView"
+        android:inputType="none"
+        android:layout_toEndOf="@id/tasklistGroupNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="..." />
+
+</RelativeLayout>
+
+
     <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/grouptaskslist"
         android:name="joroze.com.roomifer.GroupTasksListFragment"
+        android:layout_below="@id/taskListHeaderData"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
         app:layoutManager="LinearLayoutManager"
         tools:listitem="@layout/group_tasks_item" />
 
@@ -56,6 +87,7 @@
         android:textColor="#ffff"
         android:textSize="25sp"
         android:textStyle="bold" />
+
 
 
 </RelativeLayout>
