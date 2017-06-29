@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#6d4873</color>
     <color name="colorAccent">#ff6a8a</color>
     <color name="MainMenuBackgroundColor">#f1e4e4</color>
+    <color name="ShadeBackground">#3b000000</color>
+    <color name="GroupSettingsColor">#b0bec5</color>
+    <color name="GroupNotificationsColor">#e1f5fe</color>
 </resources>

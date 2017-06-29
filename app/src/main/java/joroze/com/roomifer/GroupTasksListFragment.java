@@ -1,6 +1,9 @@
 
 package joroze.com.roomifer;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -18,7 +21,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,36 +47,51 @@ import java.util.Map;
 */
 
 
-public class GroupTasksListFragment extends Fragment implements CreateTaskDialogFragment.CreateTaskDialogListener {
+public class GroupTasksListFragment extends Fragment {
 
     private static final String TAG = "SignInActivity";
 
     private static DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
+    private DatabaseReference mGroupReference;
+    private DatabaseReference mUserReference;
     private DatabaseReference mTaskReference;
 
     FirebaseUser mCurrentUser;
-    User clientUser;
     LinearLayoutManager linearLayoutManager;
 
+    ImageView noTasksAvailableSunImage;
+    TextView noTasksAvailableInfo;
+    TextView taskListGroupNameTextView;
+    TextView tasklistUserPointsTextView;
 
-    RecyclerView.Adapter tasksRecyclerViewAdapter;
+    FirebaseRecyclerAdapter tasksRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
 
     String group_id;
-    int group_index;
+
+    Group currentGroup;
+    User currentClientUser;
+
+    private ValueEventListener mGroupListener;
+    private ValueEventListener mUserListener;
+
 
     public GroupTasksListFragment() {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
 
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        View rootView = inflater.inflate(R.layout.fragment_group_tasks_list, container, false);
 
+        taskListGroupNameTextView = (TextView) rootView.findViewById(R.id.tasklistGroupNameTextView);
+        tasklistUserPointsTextView = (TextView) rootView.findViewById(R.id.tasklistUserPointsTextView);
+
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (mCurrentUser == null) {
             Log.d(TAG, "USER SIGNED OUT AND DOES NOT EXIST HERE, RETURNING TO MAIN ACTIVITY");
@@ -79,14 +101,44 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
         }
 
         group_id = this.getArguments().getString("group_id");
-        group_index = this.getArguments().getInt("group_index");
+
+        mGroupReference = FirebaseDatabase.getInstance().getReference().child("groups").child(group_id);
+
+        ValueEventListener groupListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Group object and use the values to update the UI
+
+                if (dataSnapshot.exists()) {
+
+                    Log.d(TAG, "Updating currentGroup!");
+                    currentGroup = dataSnapshot.getValue(Group.class);
+                    taskListGroupNameTextView.setText(currentGroup.getGroupName());
+                } else {
+                    Log.d(TAG, "Group does not exist. Going back to Main activity! ");
+                    getActivity().finish();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadGroup:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        mGroupReference.addValueEventListener(groupListener);
+
+        // Save the reference to the groupListener
+        mGroupListener = groupListener;
 
 
         mTaskReference = FirebaseDatabase.getInstance().getReference()
                 .child("groups").child(group_id).child("tasks");
 
 
-        View rootView = inflater.inflate(R.layout.fragment_group_tasks_list, container, false);
+
 
 
         itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
@@ -100,8 +152,8 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
         recyclerView.setLayoutManager(linearLayoutManager);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        //DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        //recyclerView.addItemDecoration(dividerItemDecoration);
 
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabaddtask);
 
@@ -123,9 +175,12 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
         super.onStart();
 
 
+        noTasksAvailableSunImage = (ImageView)getActivity().findViewById(R.id.notasks);
+        noTasksAvailableInfo = (TextView) getActivity().findViewById(R.id.notaskstextview);
+
         tasksRecyclerViewAdapter = new FirebaseRecyclerAdapter<Task, TaskHolder>(Task.class, R.layout.group_tasks_item, TaskHolder.class, mTaskReference) {
             @Override
-            protected void populateViewHolder(TaskHolder viewHolder, final Task task, int position) {
+            protected void populateViewHolder(TaskHolder viewHolder, Task task, final int position) {
 
                 viewHolder.setTaskTitle(task.getTitle());
                 //viewHolder.setTaskAssigneeName();
@@ -135,6 +190,8 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
                     @Override
                     public void onClick(View view) {
 
+                        showTaskContentDialog(position);
+
                     }
                 });
 
@@ -143,8 +200,18 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
                 @Override
                 protected void onDataChanged() {
-                    // If there are no chat messages, show a view that invites the user to add a message.
-                    recyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+
+                    if (tasksRecyclerViewAdapter.getItemCount() == 0) {
+                        noTasksAvailableSunImage.setVisibility(View.VISIBLE);
+                        noTasksAvailableInfo.setVisibility(View.VISIBLE);
+                    }
+
+                    else
+                    {
+                        noTasksAvailableSunImage.setVisibility(View.GONE);
+                        noTasksAvailableInfo.setVisibility(View.GONE);
+                    }
+                   //groupMemberRosterRecyclerView.setVisibility(tasksRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                 }
             };
 
@@ -161,23 +228,90 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
     }
 
 
+    Dialog createTaskDialog;
+    TextView taskTime;
+    TextView taskDate;
+
+    TimePickerDialog.OnTimeSetListener mTimeSetListener =
+            new TimePickerDialog.OnTimeSetListener() {
+                @Override
+                public void onTimeSet(android.widget.TimePicker view,
+                                      int hourOfDay, int minute) {
+
+                    taskTime = (TextView) createTaskDialog.findViewById(R.id.createTaskTimeTextView);
+                    //Display the user changed time on TextView
+                    taskTime.setText("Hour : " + String.valueOf(hourOfDay)
+                            + "\nMinute : " + String.valueOf(minute));
+                }
+            };
+
+    DatePickerDialog.OnDateSetListener mDateSetListener =
+            new DatePickerDialog.OnDateSetListener() {
+                @Override
+                public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+
+                    taskDate = (TextView) createTaskDialog.findViewById(R.id.createTaskDayTextView);
+                    //Display the user changed time on TextView
+                    taskDate.setText("Day : " + String.valueOf(day)
+                            + "\nMonth : " + String.valueOf(month) + "\nYear : " + String.valueOf(year));
+
+                }
+            };
+
+
+
+
     public void showCreateTaskDialog() {
-        //Create an instance of the dialog fragment and show it
-        CreateTaskDialogFragment dialog = new CreateTaskDialogFragment();
-        dialog.setTargetFragment(this, 0);
-        //dialog.show(view.getContext().getApplicationContext().get)
-        dialog.show(getActivity().getSupportFragmentManager(), "CreateTaskDialogFragment");
+
+        // Custom Dialog
+        createTaskDialog = new Dialog(getContext());
+        createTaskDialog.setContentView(R.layout.create_task_dialog_layout);
+
+        Button btnSetTaskTime = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskTime);
+        // if button is clicked, close the custom dialog
+        btnSetTaskTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = new TimePickerFragment(mTimeSetListener);
+                newFragment.show(getFragmentManager(),"TimePicker");
+            }
+        });
+
+        Button btnSetTaskDay = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskDay);
+        // if button is clicked, close the custom dialog
+        btnSetTaskDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = new DatePickerFragment(mDateSetListener);
+                newFragment.show(getFragmentManager(),"DatePicker");
+
+
+            }
+        });
+
+        Button btnTaskDone = (Button) createTaskDialog.findViewById(R.id.buttonSetTaskOk);
+        // if button is clicked, close the custom dialog
+        btnTaskDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                TextView taskTitle = (TextView)createTaskDialog.findViewById(R.id.createTaskTitleTextEntry);
+                TextView taskDescription = (TextView)createTaskDialog.findViewById(R.id.createTaskDescriptionTextEntry);
+                fbWriteNewTask(taskTitle.getText().toString(), taskDescription.getText().toString());
+                createTaskDialog.dismiss();
+            }
+        });
+
+        createTaskDialog.show();
 
 
     }
 
 
-    Task selectedTask;
-    int selectedTaskPosition;
-
-    Map<String, Object> deleteTaskChildUpdates;
-
-    StringBuilder snackbarDeleteResultMsg;
+    private Task selectedTask;
+    private int selectedTaskPosition;
+    private Map<String, Object> deleteTaskChildUpdates;
+    private StringBuilder snackbarDeleteResultMsg;
 
 
     ItemTouchHelper.SimpleCallback simpleCallbackItemTouchHelper = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
@@ -199,14 +333,14 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
             selectedTaskPosition = viewHolder.getAdapterPosition();
             //clientUser.getGroups().get()
-            selectedTask = clientUser.getGroups().get(group_index).getTasks().get(selectedTaskPosition);
+            selectedTask = currentGroup.getTasks().get(selectedTaskPosition);
             deleteTaskChildUpdates = new HashMap<>();
 
             dialogTitle = new StringBuilder("Delete Task");
 
             dialogMsg = new StringBuilder("Are you sure you want to delete the following task: \"");
             dialogMsg.append(selectedTask.getTitle());
-            dialogMsg.append("?\n\nDescription: ");
+            dialogMsg.append("\"?\n\nDescription: ");
             dialogMsg.append(selectedTask.getDescription());
 
             snackbarDeleteResultMsg = new StringBuilder("You\'ve");
@@ -214,13 +348,13 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
             // ========================================================================
             // Programmatically create an Alert Dialog box "pop-up"
             // DIALOG LOGIC STARTS HERE ===============================================
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder deleteTaskDialogBuilder = new AlertDialog.Builder(getActivity());
 
             // set title of the alert dialog
-            alertDialogBuilder.setTitle(dialogTitle);
+            deleteTaskDialogBuilder.setTitle(dialogTitle);
 
             // set dialog message
-            alertDialogBuilder
+            deleteTaskDialogBuilder
 
                     // TODO: Use custom text with HTML design
                     // http://stackoverflow.com/questions/9935692/how-to-set-part-of-text-to-bold-when-using-alertdialog-setmessage-in-android
@@ -232,21 +366,21 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
                             // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
 
                             // Deletes the target task
-                            deleteTaskChildUpdates.put("/groups/" + group_id + "/tasks/" + selectedTask.getId(), null);
+                            //deleteTaskChildUpdates.put("/groups/" + group_id + "/tasks/" + selectedTask.getId(), null);
 
                             snackbarDeleteResultMsg.append(" deleted the task: \"");
                             snackbarDeleteResultMsg.append(selectedTask.getTitle());
                             snackbarDeleteResultMsg.append("\"");
 
                             // Remove group item from the Recycler List
-                            //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
+                            //groupMemberRosterRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
                             tasksRecyclerViewAdapter.notifyItemRemoved(selectedTaskPosition);
 
                             // Remove group from client user object
-                            clientUser.getGroups().get(group_index).getTasks().remove(selectedTaskPosition);
+                            currentGroup.getTasks().remove(selectedTaskPosition);
 
-                            Map<String, Object> userValues = clientUser.toMap();
-                            deleteTaskChildUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+                            Map<String, Object> groupValues = currentGroup.toMap();
+                            deleteTaskChildUpdates.put("/groups/" + currentGroup.getGroup_id(), groupValues);
 
                             mDatabase.updateChildren(deleteTaskChildUpdates);
 
@@ -266,7 +400,7 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
                     .setCancelable(false);
 
             // create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
+            AlertDialog alertDialog = deleteTaskDialogBuilder.create();
             alertDialog.show();
 
             //DIALOG LOGIC ENDS HERE =============================================================
@@ -276,66 +410,52 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
     };
 
 
-    public void fbWriteNewTask(final String taskName) {
+    private Dialog taskContentDialog;
+    TextView taskContentTitle;
+    TextView taskContentDescription;
 
-        DatabaseReference mTaskReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(clientUser.getFb_uid()).child("groups");
+    private void showTaskContentDialog(int pTaskPosition)
+    {
+        Task task = currentGroup.getTasks().get(pTaskPosition);
 
-        ValueEventListener taskListener = new ValueEventListener() {
+        // Custom Dialog
+        taskContentDialog = new Dialog(getContext());
+        taskContentDialog.setContentView(R.layout.task_content_dialog_layout);
+
+        taskContentTitle = (TextView) taskContentDialog.findViewById(R.id.taskContentTitle);
+        taskContentDescription = (TextView) taskContentDialog.findViewById(R.id.taskContentDescriptionTextLabel);
+
+
+        taskContentTitle.setText(task.getTitle());
+        taskContentDescription.setText(task.getDescription());
+
+        Button btnDismissTaskContentDialog = (Button) taskContentDialog.findViewById(R.id.buttonDismissTaskContent);
+        // if button is clicked, close the custom dialog
+        btnDismissTaskContentDialog.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-
-
-
-                    // If the check was passed, we update the user values to the client android app
-                clientUser.getGroups().clear();
-
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Group group = postSnapshot.getValue(Group.class);
-                    clientUser.getGroups().add(group);
-                }
-
-
-
-                    //for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    //Group group = postSnapshot.getValue(Group.class);
-                    //  clientUser.getGroups().put(group.getId(),group);
-                    //}
-
-
-
-
-                String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
-
-                Task task = new Task(taskKey, taskName, "DESCRIPTION HERE", clientUser);
-
-
-               clientUser.getGroups().get(group_index).getTasks().add(task);
-
-                //clientUser.getGroups().get(group_id).getTasks().add(task);
-
-                Map<String, Object> taskValues = task.toMap();
-                Map<String, Object> userValues = clientUser.toMap();
-
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/groups/" + group_id + "/tasks/" + taskKey, taskValues);
-                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
-
-
-                mDatabase.updateChildren(childUpdates);
+            public void onClick(View v) {
+                taskContentDialog.dismiss();
             }
+        });
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
+        taskContentDialog.show();
+    }
 
-        mTaskReference.addListenerForSingleValueEvent(taskListener);
-        mTaskReference.removeEventListener(taskListener);
+    public void fbWriteNewTask(final String taskName, final String taskDescription) {
+
+        String taskKey = mDatabase.child("groups").child(group_id).child("tasks").push().getKey();
+
+        Task task = new Task(taskKey, taskName, taskDescription, currentClientUser);
+
+        currentGroup.getTasks().add(task);
+
+        Map<String, Object> groupValues = currentGroup.toMap();
+
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/groups/" + group_id, groupValues);
+
+
+        mDatabase.updateChildren(childUpdates);
 
 
         // On success
@@ -346,61 +466,62 @@ public class GroupTasksListFragment extends Fragment implements CreateTaskDialog
 
     public void initializeClientUser() {
 
-        DatabaseReference mUserReference = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(mCurrentUser.getUid());
+
+
+        mUserReference = FirebaseDatabase.getInstance().getReference().child("users").child(mCurrentUser.getUid());
 
         ValueEventListener userListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                //User checkUser = dataSnapshot.getValue(User.class);
+                // Get User object and use the values to update the UI
 
                 if (dataSnapshot.exists()) {
-                    // if this user exists, create a user with existing information from Firebase database
-                    Log.d(TAG, dataSnapshot.toString());
-                    User savedUser = dataSnapshot.getValue(User.class);
-                    clientUser = new User(savedUser.getFb_uid(), savedUser.getDisplayName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getGroups());
-                } else {
-                    // otherwise, create a new user with default information
+                    Log.d(TAG, "Updating currentClientUser!");
+                    currentClientUser = dataSnapshot.getValue(User.class);
+                    tasklistUserPointsTextView.setText(String.valueOf(currentClientUser.getTaskPoints()) + " pts");
+                }
+
+                else
+                {
                     Log.d(TAG, "User does not exist. Going back to Main activity! ");
                     getActivity().finish();
                 }
-
-                Map<String, Object> userValues = clientUser.toMap();
-
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
-
-                // update any information to the database
-                mDatabase.updateChildren(childUpdates);
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // Getting currentClientUser failed, log a message
+                Log.w(TAG, "loadCurrentClientUser:onCancelled", databaseError.toException());
                 // ...
             }
         };
 
-        mUserReference.addListenerForSingleValueEvent(userListener);
 
-        mUserReference.removeEventListener(userListener);
+        mUserReference.addValueEventListener(userListener);
 
-    }
+        // Save the reference to the userListener
+        mUserListener = userListener;
 
-
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog) {
-
-        EditText mEdit = (EditText) dialog.getDialog().findViewById(R.id.createTaskTitleTextEntry);
-        fbWriteNewTask(mEdit.getText().toString());
     }
 
     @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
+    public void onStop()
+    {
+        super.onStop();
+
+        // Remove group value event listener
+        if (mGroupListener != null) {
+            mGroupReference.removeEventListener(mGroupListener);
+        }
+
+        if (mUserListener != null) {
+            mUserReference.removeEventListener(mUserListener);
+        }
+
+        tasksRecyclerViewAdapter.cleanup();
+
 
     }
+
 }
 

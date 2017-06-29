@@ -13,11 +13,15 @@
         android:contentDescription="Roomifer"
         android:src="@drawable/new_task_img"/>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <EditText
         android:id="@+id/createTaskTitleTextEntry"
         android:inputType="textCapSentences"
         android:textAlignment="center"
-        android:maxLength="15"
+        android:maxLength="25"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -26,5 +30,73 @@
         android:layout_marginBottom="4dp"
         android:hint="Name of Task" />
 
+    <EditText
+        android:id="@+id/createTaskDescriptionTextEntry"
+        android:inputType="textMultiLine"
+        android:layout_below="@id/createTaskTitleTextEntry"
+        android:maxLength="150"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="Task Description" />
 
+
+
+        <Button
+            android:id="@+id/buttonSetTaskTime"
+            android:text="Set Time"
+            android:layout_below="@id/createTaskDescriptionTextEntry"
+            android:layout_alignParentStart="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/buttonSetTaskDay"
+            android:text="Set Day"
+            android:layout_below="@id/createTaskDescriptionTextEntry"
+            android:layout_toRightOf="@id/buttonSetTaskTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/createTaskTimeTextView"
+            android:inputType="none"
+            android:layout_below="@id/buttonSetTaskTime"
+            android:layout_alignParentStart="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="4dp"
+            android:textAlignment="center"
+            android:hint="Unset"
+            android:layout_toStartOf="@+id/buttonSetTaskDay" />
+
+        <TextView
+            android:id="@+id/createTaskDayTextView"
+            android:inputType="none"
+            android:layout_below="@id/buttonSetTaskDay"
+            android:layout_toRightOf="@id/createTaskTimeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:textAlignment="center"
+            android:layout_marginBottom="4dp"
+            android:hint="Unset"
+            android:layout_alignEnd="@+id/buttonSetTaskDay" />
+
+        <Button
+            android:id="@+id/buttonSetTaskOk"
+            android:text="Create"
+            android:layout_below="@id/createTaskDescriptionTextEntry"
+            android:layout_alignParentEnd="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/createTaskDayTextView" />
+
+    </RelativeLayout>
 </LinearLayout>

@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseIndexRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -42,10 +43,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView.OnNavigationItemSelectedListener,
         CreateGroupDialogFragment.CreateGroupDialogListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener{
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "SignInActivity";
 
@@ -73,12 +74,10 @@ public class MainActivity extends AppCompatActivity
     boolean firstSignInCheck = false;
 
 
-
     boolean fullGroupDelete = false;
 
 
-
-    RecyclerView.Adapter groupRecyclerViewAdapter;
+    FirebaseIndexRecyclerAdapter groupRecyclerViewAdapter;
     RecyclerView recyclerView;
     private ItemTouchHelper itemTouchHelper;
 
@@ -86,10 +85,11 @@ public class MainActivity extends AppCompatActivity
 
 
     Group selectedGroup;
-    int selectedGroupPosition;
+
     Map<String, Object> leaveGroupChildUpdates;
 
     StringBuilder snackbarDeleteResultMsg;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,10 +121,9 @@ public class MainActivity extends AppCompatActivity
         // [END build_client]
 
 
-
         itemTouchHelper = new ItemTouchHelper(simpleCallbackItemTouchHelper);
 
-        recyclerView = (RecyclerView)findViewById(R.id.recyclegrouplist);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclegrouplist);
         recyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setReverseLayout(false);
@@ -133,6 +132,8 @@ public class MainActivity extends AppCompatActivity
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         mAuth = FirebaseAuth.getInstance();
+
+
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -150,36 +151,38 @@ public class MainActivity extends AppCompatActivity
 
                     showSnackbar(1);
 
-                    groupRecyclerViewAdapter = new FirebaseRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")) {
+
+                    DatabaseReference keyRef = FirebaseDatabase.getInstance().getReference().child("users")
+                            .child(mCurrentUser.getUid()).child("groups");
+                    DatabaseReference dataRef = FirebaseDatabase.getInstance().getReference().child("groups");
+
+                    // mDatabase.child("users").child(mCurrentUser.getUid()).child("groups")
+                    groupRecyclerViewAdapter = new FirebaseIndexRecyclerAdapter<Group, GroupHolder>(Group.class, R.layout.group_list_item, GroupHolder.class, keyRef, dataRef) {
                         @Override
                         protected void populateViewHolder(GroupHolder viewHolder, final Group group, final int position) {
-
-                            //clientUser.addToGroup(group);
 
                             viewHolder.setCardGroupName(group.getGroupName());
                             viewHolder.setGroupMemberCount(group.getMembers().size());
                             viewHolder.setCardAuthorProfileImg(group.getAuthorProfilePictureUrl());
 
-                            viewHolder.itemView.setOnClickListener(new View.OnClickListener()
-                            {
+                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
                                     Intent nextActivity = new Intent(getApplicationContext(), GroupContentActivity.class);
-                                    nextActivity.putExtra("group_id", group.getId());
+                                    nextActivity.putExtra("group_id", group.getGroup_id());
                                     nextActivity.putExtra("group_name", group.getGroupName());
-                                    nextActivity.putExtra("group_index", position);
                                     startActivity(nextActivity);
                                 }
                             });
 
                         }
 
-
                         @Override
                         protected void onDataChanged() {
                             // If there are no chat messages, show a view that invites the user to add a message.
-                            recyclerView.setVisibility(groupRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
+                            //groupMemberRosterRecyclerView.setVisibility(groupMemberRosterRecyclerViewAdapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
                         }
+
                     };
 
                     // Scroll to bottom on new messages
@@ -193,16 +196,11 @@ public class MainActivity extends AppCompatActivity
 
                     recyclerView.setAdapter(groupRecyclerViewAdapter);
 
-                    //updateUserProfile();
-
-
                 } else {
                     Log.d(TAG, "User is currently signed out");
                 }
             }
         };
-
-        //itemTouchHelper.attachToRecyclerView(recyclerView);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -407,7 +405,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 });
 
-                        fbDeleteAccount(clientUser);
+                        fbDeleteAccount();
 
                         if (status.isSuccess())
                             Log.d(TAG, "Google Sign-In Revoke successful!");
@@ -436,6 +434,7 @@ public class MainActivity extends AppCompatActivity
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+
     }
 
     protected void onResume() {
@@ -494,8 +493,7 @@ public class MainActivity extends AppCompatActivity
 
                     if (mCurrentUser.getPhotoUrl() == null) {
                         photoUrl = "";
-                    }
-                    else
+                    } else
                         photoUrl = mCurrentUser.getPhotoUrl().toString();
 
                     clientUser = new User(mCurrentUser.getUid(), mCurrentUser.getDisplayName(), mCurrentUser.getEmail(), photoUrl);
@@ -563,18 +561,13 @@ public class MainActivity extends AppCompatActivity
                     // If the check was passed, we update the user values to the client android app
                     clientUser.getGroups().clear();
 
-                    for (DataSnapshot postSnapshot : dataSnapshot.child("groups").getChildren()) {
-                        Group group = postSnapshot.getValue(Group.class);
-                        clientUser.getGroups().add(group);
+                    clientUser.setGroups((HashMap<String, Boolean>) dataSnapshot.child("groups").getValue());
+                    //HashMap<String, Boolean> groups = (HashMap<String, Boolean>) dataSnapshot.child("groups").getChildren();
 
-                    }
-
-                }
-
-                else if (!dataSnapshot.child("groups").exists()){
-                    Log.d(TAG, "User DOES NOT EXIST, Logging the user out (back to login screen)");
+                } else if (!dataSnapshot.child("groups").exists()) {
 
                     if (!dataSnapshot.exists()) {
+                        Log.d(TAG, "User DOES NOT EXIST, Logging the user out (back to login screen)");
                         signOut();
                         return;
                     }
@@ -615,26 +608,48 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    public void fbDeleteAccount() {
+        final Map<String, Object> childUpdates = new HashMap<>();
 
 
-    public static void fbDeleteAccount(User user) {
-        Map<String, Object> childUpdates = new HashMap<>();
+        Query mGroupReference = mDatabase.child("groups").orderByChild(mCurrentUser.getUid());
+
+        ValueEventListener groupListener = new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+
+                    for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
+
+                        Log.d(TAG, "Group found: " + postSnapShot.getValue(Group.class).getGroup_id());
+
+                        Group aGroup = postSnapShot.getValue(Group.class);
+
+                        if (clientUser.getFb_uid().equals(aGroup.getAuthor_id())) {
+                            childUpdates.put("/groups/" + aGroup.getGroup_id(), null);
+                        }
+
+                    }
 
 
+                }
 
-        for (Group group : user.getGroups()) {
+                childUpdates.put("/users/" + clientUser.getFb_uid(), null);
+                mDatabase.updateChildren(childUpdates);
 
-            if (user.getDisplayName().equals(group.getAuthor())) {
-                childUpdates.put("/groups/" + group.getId(), null);
-
-                //TODO Find a way to remove each user from the group that was deleted...
-                // CLOUD FUNCTION
-
-                // TODO If a user
             }
-        }
 
-        childUpdates.put("/users/" + user.getFb_uid(), null);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+
+        mGroupReference.addListenerForSingleValueEvent(groupListener);
+        mGroupReference.removeEventListener(groupListener);
+
 
         /*Group group = new Group(groupId, groupName, user);
 
@@ -646,11 +661,8 @@ public class MainActivity extends AppCompatActivity
         childUpdates.put("/users/" + user.g_uid, userValues);
         */
 
-        mDatabase.updateChildren(childUpdates);
+
     }
-
-
-
 
 
     ItemTouchHelper.SimpleCallback simpleCallbackItemTouchHelper = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
@@ -661,105 +673,128 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
 
-
-            // Using StringBuilder for String optimization
-            StringBuilder dialogTitle;
-            StringBuilder dialogMsg;
-
-
-            selectedGroupPosition = viewHolder.getAdapterPosition();
-            selectedGroup = clientUser.getGroups().get(selectedGroupPosition);
             leaveGroupChildUpdates = new HashMap<>();
 
-            dialogTitle = new StringBuilder("Confirm to Leave");
+            final String selectedGroupPositionKey = groupRecyclerViewAdapter.getRef(viewHolder.getAdapterPosition()).getKey();
 
-            dialogMsg = new StringBuilder("Are you sure you want to leave the group: \"");
-            dialogMsg.append(selectedGroup.getGroupName());
-            dialogMsg.append("?");
+            Log.d(TAG, selectedGroupPositionKey);
 
-            if (selectedGroup.getAuthor_id().equals(clientUser.getFb_uid()))
-            {
-                fullGroupDelete = true;
-                dialogTitle.append(" and Delete");
-                dialogMsg.append("\n\n(Since you\'re the owner, the group will also be deleted)");
-            }
+            DatabaseReference mGroupReference = FirebaseDatabase.getInstance().getReference().child("groups").child(selectedGroupPositionKey);
 
-            snackbarDeleteResultMsg = new StringBuilder("You\'ve");
+            ValueEventListener groupListener = new ValueEventListener() {
 
-            // ========================================================================
-            // Programmatically create an Alert Dialog box "pop-up"
-            // DIALOG LOGIC STARTS HERE ===============================================
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
 
-            // set title of the alert dialog
-            alertDialogBuilder.setTitle(dialogTitle);
 
-            // set dialog message
-            alertDialogBuilder
+                    selectedGroup = dataSnapshot.getValue(Group.class);
 
-                    // TODO: Use custom text with HTML design
-                    // http://stackoverflow.com/questions/9935692/how-to-set-part-of-text-to-bold-when-using-alertdialog-setmessage-in-android
-                    // Html.fromHtml(String source, int flags)
-                    .setMessage(dialogMsg)
-                    .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                    Log.d(TAG, "Fetched this group: " + selectedGroup.getGroupName() + " with id: " + selectedGroup.getGroup_id());
 
-                            // If clientUser deletes a group that it is the author of, then delete it from database
-                            if (fullGroupDelete)
-                            {
-                                // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
-                                leaveGroupChildUpdates.put("/groups/" + selectedGroup.getId(), null);
+                    // Using StringBuilder for String optimization
+                    StringBuilder dialogTitle;
+                    StringBuilder dialogMsg;
 
-                                snackbarDeleteResultMsg.append(" deleted the group: \"");
-                            }
+                    dialogTitle = new StringBuilder("Confirm to Leave");
+                    dialogMsg = new StringBuilder("Are you sure you want to leave the group: \"");
+                    dialogMsg.append(selectedGroup.getGroupName());
+                    dialogMsg.append("\"?");
 
-                            // If clientUser deletes a group that it is not the author of, then remove clientUser from group in the database
-                            else {
-                                selectedGroup.getMembers().remove(clientUser.getFb_uid());
-                                Map<String, Object> groupValues = selectedGroup.toMap();
-                                leaveGroupChildUpdates.put("/groups/" + selectedGroup.getId(), groupValues);
+                    if (selectedGroup.getAuthor_id().equals(clientUser.getFb_uid())) {
+                        fullGroupDelete = true;
+                        dialogTitle.append(" and Delete");
+                        dialogMsg.append("\n\n(Since you\'re the owner, the group will also be deleted)");
+                    }
 
-                                snackbarDeleteResultMsg.append(" left the group: \"");
-                            }
+                    snackbarDeleteResultMsg = new StringBuilder("You\'ve");
 
-                            snackbarDeleteResultMsg.append(selectedGroup.getGroupName());
-                            snackbarDeleteResultMsg.append("\"");
+                    // ========================================================================
+                    // Programmatically create an Alert Dialog box "pop-up"
+                    // DIALOG LOGIC STARTS HERE ===============================================
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
-                            // Remove group item from the Recycler List
-                            //groupRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
-                            groupRecyclerViewAdapter.notifyItemRemoved(selectedGroupPosition);
+                    // set title of the alert dialog
+                    alertDialogBuilder.setTitle(dialogTitle);
 
-                            // Remove group from client user object
-                            clientUser.getGroups().remove(selectedGroupPosition);
+                    // set dialog message
+                    alertDialogBuilder
 
-                            Map<String, Object> userValues = clientUser.toMap();
-                            leaveGroupChildUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+                            // TODO: Use custom text with HTML design
+                            // http://stackoverflow.com/questions/9935692/how-to-set-part-of-text-to-bold-when-using-alertdialog-setmessage-in-android
+                            // Html.fromHtml(String source, int flags)
+                            .setMessage(dialogMsg)
+                            .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
 
-                            mDatabase.updateChildren(leaveGroupChildUpdates);
+                                    // If clientUser deletes a group that it is the author of, then delete it from database
+                                    if (fullGroupDelete) {
+                                        // TODO: MAKE IT SO ANDROID APP CONTINOUSLY CHECKS FOR GROUP CHANGES.... Think about it!
+                                        Log.d(TAG, "Group ID to be deleted is: " + selectedGroup.getGroup_id());
+                                        leaveGroupChildUpdates.put("/groups/" + selectedGroup.getGroup_id(), null);
 
-                            Snackbar snackbar = Snackbar.make(findViewById(R.id.mainSnackBarView), snackbarDeleteResultMsg, Snackbar.LENGTH_LONG);
-                            snackbar.show();
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // if this button is clicked, close the dialog box
+                                        snackbarDeleteResultMsg.append(" deleted the group: \"");
+                                    }
 
-                            // also reset the view adapter to put back in place the slided row
-                            groupRecyclerViewAdapter.notifyDataSetChanged();
-                            dialog.cancel();
-                        }
-                    })
-                    .setCancelable(false);
+                                    // If clientUser deletes a group that it is not the author of, then remove clientUser from group in the database
+                                    else {
+                                        selectedGroup.getMembers().remove(clientUser.getFb_uid());
+                                        Map<String, Object> groupValues = selectedGroup.toMap();
+                                        leaveGroupChildUpdates.put("/groups/" + selectedGroup.getGroup_id(), groupValues);
 
-            // create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+                                        snackbarDeleteResultMsg.append(" left the group: \"");
+                                    }
 
-            //DIALOG LOGIC ENDS HERE =============================================================
-            //====================================================================================
+                                    snackbarDeleteResultMsg.append(selectedGroup.getGroupName());
+                                    snackbarDeleteResultMsg.append("\"");
+
+                                    // Remove group item from the Recycler List
+                                    //groupMemberRosterRecyclerViewAdapter.removeGroupItem(selectedTaskPosition);
+                                    groupRecyclerViewAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+
+                                    // Remove group from client user object
+                                    clientUser.getGroups().remove(selectedGroupPositionKey);
+
+                                    Map<String, Object> userValues = clientUser.toMap();
+                                    leaveGroupChildUpdates.put("/users/" + clientUser.getFb_uid(), userValues);
+
+                                    mDatabase.updateChildren(leaveGroupChildUpdates);
+
+                                    Snackbar snackbar = Snackbar.make(findViewById(R.id.mainSnackBarView), snackbarDeleteResultMsg, Snackbar.LENGTH_LONG);
+                                    snackbar.show();
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    // if this button is clicked, close the dialog box
+
+                                    // also reset the view adapter to put back in place the slided row
+                                    groupRecyclerViewAdapter.notifyDataSetChanged();
+                                    dialog.cancel();
+                                }
+                            })
+                            .setCancelable(false);
+
+                    // create alert dialog
+                    AlertDialog alertDialog = alertDialogBuilder.create();
+                    alertDialog.show();
+
+                    //DIALOG LOGIC ENDS HERE =============================================================
+                    //====================================================================================
+
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+
+            mGroupReference.addListenerForSingleValueEvent(groupListener);
+            mGroupReference.removeEventListener(groupListener);
+
 
         }
     };

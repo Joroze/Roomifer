@@ -14,8 +14,8 @@ import java.util.Map;
 @IgnoreExtraProperties
 public class Group {
 
-    @Exclude
-    private String id;
+
+    private String group_id;
 
     private String author;
 
@@ -34,8 +34,8 @@ public class Group {
     }
 
 
-    public Group(String id, String groupName, User user) {
-        this.id = id;
+    public Group(String group_id, String groupName, User user) {
+        this.group_id = group_id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
         this.author_id = user.getFb_uid();
@@ -45,8 +45,8 @@ public class Group {
         user.addToGroup(this);
     }
 
-    public Group(String id, String groupName, User user, ArrayList<Task> tasks) {
-        this.id = id;
+    public Group(String group_id, String groupName, User user, ArrayList<Task> tasks) {
+        this.group_id = group_id;
         this.groupName = groupName;
         this.author = user.getDisplayName();
         this.author_id = user.getFb_uid();
@@ -61,6 +61,7 @@ public class Group {
     public Map<String, Object> toMap()
     {
         HashMap<String, Object> result = new HashMap<>();
+        result.put("group_id", group_id);
         result.put("author", author);
         result.put("author_id", author_id);
         result.put("groupName", groupName);
@@ -72,12 +73,8 @@ public class Group {
     }
 
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public String getGroup_id() {
+        return group_id;
     }
 
     public String getAuthor() {

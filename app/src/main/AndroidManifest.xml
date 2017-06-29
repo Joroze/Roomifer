@@ -25,12 +25,14 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize">
 
         </activity>
         <activity
             android:name=".GroupContentActivity"
             android:label="@string/title_activity_group_content"
+            android:windowSoftInputMode="adjustPan"
             android:parentActivityName=".MainActivity" >
         </activity>
     </application>
