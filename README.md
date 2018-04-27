@@ -1,13 +1,10 @@
 
-# Roomifer - (Currently a Private Repository)
+# Roomifer
 
 
 ### Roomifer is a great tool for managing errands and other tasks with your roommates, together.
 
 ### [Help test Roomifer! (Warning: Roomifer is FAR from complete, expect some bugs.](https://tsfr.io/uymtyh)
-
-![alt text](https://www.crestron.com/images/products/icons/android_download_logo.png "Roomifer is compatible with Android devices")
-
 
 # Section Links
 1. [Prerequisites](#prerequisites)
